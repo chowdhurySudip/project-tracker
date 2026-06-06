@@ -227,3 +227,99 @@ describe('captures', () => {
     expect(useStore.getState().captures).toHaveLength(1)
   })
 })
+
+describe('session', () => {
+  let frontId: string
+  let itemId: string
+
+  beforeEach(() => {
+    resetStore()
+    useStore.getState().addFront(FRONT_DATA)
+    frontId = useStore.getState().fronts[0].id
+    useStore.getState().addItem(frontId, { text: 'Work on it' })
+    itemId = useStore.getState().fronts[0].items[0].id
+  })
+
+  it('startSession creates session with elapsed=0 and paused=false', () => {
+    useStore.getState().startSession(frontId, itemId)
+    const { session } = useStore.getState()
+    expect(session).not.toBeNull()
+    expect(session!.frontId).toBe(frontId)
+    expect(session!.itemId).toBe(itemId)
+    expect(session!.elapsed).toBe(0)
+    expect(session!.paused).toBe(false)
+    expect(session!.startedAt).toBeDefined()
+  })
+
+  it('pauseSession sets paused to true', () => {
+    useStore.getState().startSession(frontId, itemId)
+    useStore.getState().pauseSession()
+    expect(useStore.getState().session!.paused).toBe(true)
+  })
+
+  it('pauseSession is a no-op when no session', () => {
+    useStore.getState().pauseSession()
+    expect(useStore.getState().session).toBeNull()
+  })
+
+  it('resumeSession sets paused to false', () => {
+    useStore.getState().startSession(frontId, itemId)
+    useStore.getState().pauseSession()
+    useStore.getState().resumeSession()
+    expect(useStore.getState().session!.paused).toBe(false)
+  })
+
+  it('resumeSession is a no-op when no session', () => {
+    useStore.getState().resumeSession()
+    expect(useStore.getState().session).toBeNull()
+  })
+
+  it('tickSession increments elapsed by the given number of seconds', () => {
+    useStore.getState().startSession(frontId, itemId)
+    useStore.getState().tickSession(5)
+    useStore.getState().tickSession(3)
+    expect(useStore.getState().session!.elapsed).toBe(8)
+  })
+
+  it('tickSession is a no-op when paused', () => {
+    useStore.getState().startSession(frontId, itemId)
+    useStore.getState().pauseSession()
+    useStore.getState().tickSession(10)
+    expect(useStore.getState().session!.elapsed).toBe(0)
+  })
+
+  it('tickSession is a no-op when no session', () => {
+    useStore.getState().tickSession(5)
+    expect(useStore.getState().session).toBeNull()
+  })
+
+  it('endSession marks item done, sets doneAt, clears session', () => {
+    useStore.getState().startSession(frontId, itemId)
+    useStore.getState().endSession()
+    expect(useStore.getState().session).toBeNull()
+    const item = useStore.getState().fronts[0].items[0]
+    expect(item.status).toBe('done')
+    expect(item.doneAt).toBeDefined()
+  })
+
+  it('endSession with log appends a log entry to the item', () => {
+    useStore.getState().startSession(frontId, itemId)
+    useStore.getState().endSession('Finished the feature')
+    const item = useStore.getState().fronts[0].items[0]
+    expect(item.logs).toHaveLength(1)
+    expect(item.logs[0].text).toBe('Finished the feature')
+    expect(item.logs[0].id).toBeDefined()
+  })
+
+  it('abandonSession clears session without changing item status', () => {
+    useStore.getState().startSession(frontId, itemId)
+    useStore.getState().abandonSession()
+    expect(useStore.getState().session).toBeNull()
+    expect(useStore.getState().fronts[0].items[0].status).toBe('open')
+  })
+
+  it('abandonSession is a no-op when session is null', () => {
+    useStore.getState().abandonSession()
+    expect(useStore.getState().session).toBeNull()
+  })
+})
