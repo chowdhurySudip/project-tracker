@@ -26,6 +26,7 @@ export function useCapture(): UseCaptureReturn {
       if (e.key === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         const tag = (e.target as HTMLElement).tagName
         if (tag === 'INPUT' || tag === 'TEXTAREA') return
+        e.preventDefault()
         openCapture()
       }
     }

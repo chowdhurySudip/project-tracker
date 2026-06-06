@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useStore } from '@/store'
 import { FrontModal } from './FrontModal'
@@ -69,6 +69,19 @@ export function Sidebar() {
   const location = useLocation()
   const inboxCount = captures.filter((c) => !c.frontId).length
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== 'n' && e.key !== 'N') return
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      e.preventDefault()
+      setShowNewFront(true)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   const navItems = [
     { to: '/', label: 'Today', icon: 'bolt', exact: true, badge: 0 },
     { to: '/review', label: 'Weekly review', icon: 'calendar', exact: false, badge: 0 },
@@ -92,9 +105,7 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 8px 14px' }}>
-        <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--ink)', display: 'grid', placeItems: 'center', flex: 'none' }}>
-          <div style={{ width: 11, height: 11, borderRadius: 3, background: 'var(--bg)' }} />
-        </div>
+        <img src="/logo.png" alt="Command" style={{ width: 30, height: 30, borderRadius: 6, flex: 'none' }} />
         <div style={{ fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em' }}>Command</div>
       </div>
 
