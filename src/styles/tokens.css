@@ -49,4 +49,9 @@
   /* Layout */
   --sidebar-w: 248px;
   --maxw: 1180px;
+
+  /* Density defaults */
+  --pad: 20px;
+  --gap: 14px;
+  --card-pad: 22px;
 }

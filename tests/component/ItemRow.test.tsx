@@ -29,7 +29,7 @@ describe('ItemRow', () => {
   it('renders the status badge', () => {
     useStore.getState().addItem(frontId, { text: 'T' })
     const item = useStore.getState().fronts[0].items[0]
-    render(<ItemRow item={item} frontId={frontId} onStartSession={vi.fn()} />)
+    render(<ItemRow item={item} frontId={frontId} onStartSession={vi.fn()} isFirst isLast />)
     expect(screen.getByText('Open')).toBeInTheDocument()
   })
 

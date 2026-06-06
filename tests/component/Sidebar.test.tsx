@@ -10,8 +10,8 @@ describe('Sidebar', () => {
 
   it('renders Home and Review nav links', () => {
     renderWithRouter(<Sidebar />)
-    expect(screen.getByText('Home')).toBeInTheDocument()
-    expect(screen.getByText('Review')).toBeInTheDocument()
+    expect(screen.getByText('Today')).toBeInTheDocument()
+    expect(screen.getByText('Weekly review')).toBeInTheDocument()
   })
 
   it('renders one entry per active front', () => {
@@ -22,25 +22,23 @@ describe('Sidebar', () => {
     expect(screen.getByText('Beta')).toBeInTheDocument()
   })
 
-  it('does not render parked or done fronts in the list', () => {
-    useStore.getState().addFront({ name: 'Parked', type: 'project', color: '256', status: 'parked', cadence: { days: [] }, prerequisites: [] })
-    useStore.getState().addFront({ name: 'Done', type: 'project', color: '256', status: 'done', cadence: { days: [] }, prerequisites: [] })
+  it('does not render done fronts in the list', () => {
+    useStore.getState().addFront({ name: 'DoneFront', type: 'project', color: '256', status: 'done', cadence: { days: [] }, prerequisites: [] })
     renderWithRouter(<Sidebar />)
-    expect(screen.queryByText('Parked')).not.toBeInTheDocument()
-    expect(screen.queryByText('Done')).not.toBeInTheDocument()
+    expect(screen.queryByText('DoneFront')).not.toBeInTheDocument()
   })
 
   it('New Front button opens FrontModal', async () => {
     renderWithRouter(<Sidebar />)
-    await userEvent.click(screen.getByText('+ New Front'))
+    await userEvent.click(screen.getByText('New front'))
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
   it('creating a front from the modal adds it to the sidebar list', async () => {
     renderWithRouter(<Sidebar />)
-    await userEvent.click(screen.getByText('+ New Front'))
-    await userEvent.type(screen.getByPlaceholderText('Front name'), 'New Thing')
-    await userEvent.click(screen.getByText('Create'))
+    await userEvent.click(screen.getByText('New front'))
+    await userEvent.type(screen.getByPlaceholderText('e.g. Rust for systems'), 'New Thing')
+    await userEvent.click(screen.getByText('Create front'))
     expect(screen.getByText('New Thing')).toBeInTheDocument()
   })
 })

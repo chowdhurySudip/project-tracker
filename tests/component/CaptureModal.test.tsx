@@ -58,12 +58,11 @@ describe('CaptureModal', () => {
       name: 'My Front', type: 'project', color: '256', status: 'active',
       cadence: { days: [] }, prerequisites: [],
     })
-    const frontId = useStore.getState().fronts[0].id
     render(<CaptureModal open onClose={onClose} />)
     await userEvent.type(screen.getByPlaceholderText('Capture anything…'), 'Quick note')
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'File to front' }), frontId)
+    await userEvent.click(screen.getByText('My Front'))
     await userEvent.click(screen.getByText('Save'))
     const capture = useStore.getState().captures[0]
-    expect(capture.frontId).toBe(frontId)
+    expect(capture.frontId).toBe(useStore.getState().fronts[0].id)
   })
 })

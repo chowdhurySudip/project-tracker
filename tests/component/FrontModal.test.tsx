@@ -17,8 +17,8 @@ describe('FrontModal', () => {
 
   it('create mode: submitting calls addFront with name and default type', async () => {
     render(<FrontModal onClose={vi.fn()} />)
-    await userEvent.type(screen.getByPlaceholderText('Front name'), 'New Project')
-    await userEvent.click(screen.getByText('Create'))
+    await userEvent.type(screen.getByPlaceholderText('e.g. Rust for systems'), 'New Project')
+    await userEvent.click(screen.getByText('Create front'))
     expect(useStore.getState().fronts).toHaveLength(1)
     expect(useStore.getState().fronts[0].name).toBe('New Project')
     expect(useStore.getState().fronts[0].type).toBe('project')
@@ -26,7 +26,7 @@ describe('FrontModal', () => {
 
   it('create mode: empty name is a no-op', async () => {
     render(<FrontModal onClose={vi.fn()} />)
-    await userEvent.click(screen.getByText('Create'))
+    await userEvent.click(screen.getByText('Create front'))
     expect(useStore.getState().fronts).toHaveLength(0)
   })
 
@@ -42,7 +42,7 @@ describe('FrontModal', () => {
     const nameInput = screen.getByDisplayValue('Existing')
     await userEvent.clear(nameInput)
     await userEvent.type(nameInput, 'Renamed')
-    await userEvent.click(screen.getByText('Save'))
+    await userEvent.click(screen.getByText('Save changes'))
     expect(useStore.getState().fronts[0].name).toBe('Renamed')
   })
 
@@ -57,8 +57,8 @@ describe('FrontModal', () => {
   it('successful create calls onClose', async () => {
     const onClose = vi.fn()
     render(<FrontModal onClose={onClose} />)
-    await userEvent.type(screen.getByPlaceholderText('Front name'), 'My Project')
-    await userEvent.click(screen.getByText('Create'))
+    await userEvent.type(screen.getByPlaceholderText('e.g. Rust for systems'), 'My Project')
+    await userEvent.click(screen.getByText('Create front'))
     expect(onClose).toHaveBeenCalledOnce()
   })
 })

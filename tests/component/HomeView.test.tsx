@@ -49,7 +49,7 @@ describe('HomeView', () => {
   it('Delete button removes the capture', async () => {
     useStore.getState().addCapture({ text: 'To delete' })
     renderWithRouter(<HomeView />)
-    await userEvent.click(screen.getByText('Delete'))
+    await userEvent.click(screen.getByLabelText('Delete'))
     expect(useStore.getState().captures).toHaveLength(0)
   })
 
