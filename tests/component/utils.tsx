@@ -16,5 +16,5 @@ export function renderWithRouter(
 }
 
 export function resetStore() {
-  useStore.setState({ fronts: [], captures: [], session: null }, true)
+  useStore.setState({ fronts: [], captures: [], session: null })
 }
