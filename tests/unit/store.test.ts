@@ -10,6 +10,7 @@ const FRONT_DATA = {
   prerequisites: [] as string[],
 }
 
+// Zustand 5: omit replace=true (requires full T); merge is sufficient for data reset
 function resetStore() {
   useStore.setState({ fronts: [], captures: [], session: null })
 }
