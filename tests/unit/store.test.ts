@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { useStore } from '@/store'
 
 const FRONT_DATA = {
@@ -321,5 +321,51 @@ describe('session', () => {
   it('abandonSession is a no-op when session is null', () => {
     useStore.getState().abandonSession()
     expect(useStore.getState().session).toBeNull()
+  })
+})
+
+describe('persistence', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    resetStore()
+  })
+
+  afterEach(() => {
+    localStorage.clear()
+  })
+
+  it('persists fronts to localStorage under key "command-v1"', () => {
+    useStore.getState().addFront(FRONT_DATA)
+    const raw = localStorage.getItem('command-v1')
+    expect(raw).not.toBeNull()
+    const parsed = JSON.parse(raw!)
+    expect(parsed.state.fronts).toHaveLength(1)
+    expect(parsed.state.fronts[0].name).toBe(FRONT_DATA.name)
+  })
+
+  it('persists captures to localStorage', () => {
+    useStore.getState().addCapture({ text: 'Test capture' })
+    const parsed = JSON.parse(localStorage.getItem('command-v1')!)
+    expect(parsed.state.captures).toHaveLength(1)
+  })
+
+  it('does NOT persist session to localStorage', () => {
+    useStore.getState().addFront(FRONT_DATA)
+    const frontId = useStore.getState().fronts[0].id
+    useStore.getState().addItem(frontId, { text: 'item' })
+    const itemId = useStore.getState().fronts[0].items[0].id
+    useStore.getState().startSession(frontId, itemId)
+    const parsed = JSON.parse(localStorage.getItem('command-v1')!)
+    expect(parsed.state.session).toBeUndefined()
+  })
+
+  it('localStorage payload has correct Zustand persist format', () => {
+    useStore.getState().addFront({ ...FRONT_DATA, name: 'Persist check' })
+    const parsed = JSON.parse(localStorage.getItem('command-v1')!)
+    expect(parsed).toHaveProperty('state')
+    expect(parsed.state).toHaveProperty('fronts')
+    expect(parsed.state).toHaveProperty('captures')
+    expect(parsed.state).not.toHaveProperty('session')
+    expect(parsed.state.fronts[0].name).toBe('Persist check')
   })
 })
