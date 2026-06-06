@@ -1,16 +1,13 @@
 import { create } from 'zustand'
 import { createFrontsSlice } from './slices/fronts'
 import { createItemsSlice } from './slices/items'
+import { createCapturesSlice } from './slices/captures'
 import type { AppStore } from './types'
 
 const noop = () => {}
 
 export const useStore = create<AppStore>()(
   (...args) => ({
-    captures: [],
-    addCapture: noop,
-    fileCapture: noop,
-    deleteCapture: noop,
     session: null,
     startSession: noop,
     pauseSession: noop,
@@ -20,5 +17,6 @@ export const useStore = create<AppStore>()(
     abandonSession: noop,
     ...createFrontsSlice(...args),
     ...createItemsSlice(...args),
+    ...createCapturesSlice(...args),
   })
 )

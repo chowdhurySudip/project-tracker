@@ -162,3 +162,68 @@ describe('items', () => {
     expect(item.logs[0].createdAt).toBeDefined()
   })
 })
+
+describe('captures', () => {
+  beforeEach(resetStore)
+
+  it('addCapture creates a capture with id, createdAt, and no frontId', () => {
+    useStore.getState().addCapture({ text: 'Great idea', type: 'idea' })
+    const { captures } = useStore.getState()
+    expect(captures).toHaveLength(1)
+    expect(captures[0].id).toBeDefined()
+    expect(captures[0].createdAt).toBeDefined()
+    expect(captures[0].frontId).toBeUndefined()
+    expect(captures[0].text).toBe('Great idea')
+    expect(captures[0].type).toBe('idea')
+  })
+
+  it('fileCapture sets frontId on the capture, leaves other fields unchanged', () => {
+    useStore.getState().addFront(FRONT_DATA)
+    const frontId = useStore.getState().fronts[0].id
+    useStore.getState().addCapture({ text: 'Link to file' })
+    const captureId = useStore.getState().captures[0].id
+    useStore.getState().fileCapture(captureId, frontId)
+    const capture = useStore.getState().captures[0]
+    expect(capture.frontId).toBe(frontId)
+    expect(capture.text).toBe('Link to file')
+  })
+
+  it('fileCapture on nonexistent capture is a no-op', () => {
+    useStore.getState().addFront(FRONT_DATA)
+    const frontId = useStore.getState().fronts[0].id
+    useStore.getState().fileCapture('nonexistent', frontId)
+    expect(useStore.getState().captures).toHaveLength(0)
+  })
+
+  it('fileCapture on nonexistent front is a no-op', () => {
+    useStore.getState().addCapture({ text: 'Idea' })
+    const captureId = useStore.getState().captures[0].id
+    useStore.getState().fileCapture(captureId, 'nonexistent')
+    expect(useStore.getState().captures[0].frontId).toBeUndefined()
+  })
+
+  it('deleteCapture removes the capture', () => {
+    useStore.getState().addCapture({ text: 'To delete' })
+    const captureId = useStore.getState().captures[0].id
+    useStore.getState().deleteCapture(captureId)
+    expect(useStore.getState().captures).toHaveLength(0)
+  })
+
+  it('deleteFront cascades: removes captures linked to that front', () => {
+    useStore.getState().addFront(FRONT_DATA)
+    const frontId = useStore.getState().fronts[0].id
+    useStore.getState().addCapture({ text: 'Linked idea' })
+    const captureId = useStore.getState().captures[0].id
+    useStore.getState().fileCapture(captureId, frontId)
+    useStore.getState().deleteFront(frontId)
+    expect(useStore.getState().captures).toHaveLength(0)
+  })
+
+  it('deleteFront does not remove unlinked captures', () => {
+    useStore.getState().addFront(FRONT_DATA)
+    const frontId = useStore.getState().fronts[0].id
+    useStore.getState().addCapture({ text: 'Unlinked' })
+    useStore.getState().deleteFront(frontId)
+    expect(useStore.getState().captures).toHaveLength(1)
+  })
+})
