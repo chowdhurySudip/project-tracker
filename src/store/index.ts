@@ -1,20 +1,16 @@
 import { create } from 'zustand'
 import { createFrontsSlice } from './slices/fronts'
+import { createItemsSlice } from './slices/items'
 import type { AppStore } from './types'
 
 const noop = () => {}
 
 export const useStore = create<AppStore>()(
   (...args) => ({
-    // Stubs — replaced task by task through Task 9
     captures: [],
     addCapture: noop,
     fileCapture: noop,
     deleteCapture: noop,
-    addItem: noop,
-    updateItem: noop,
-    reorderItem: noop,
-    addLog: noop,
     session: null,
     startSession: noop,
     pauseSession: noop,
@@ -23,5 +19,6 @@ export const useStore = create<AppStore>()(
     endSession: noop,
     abandonSession: noop,
     ...createFrontsSlice(...args),
+    ...createItemsSlice(...args),
   })
 )
