@@ -23,20 +23,27 @@ export interface Item {
   doneAt?: string
 }
 
+export interface CadenceTime {
+  from?: number    // hour 0–23: "after X" constraint
+  until?: number   // hour 0–23: "before X" constraint
+  label?: string   // e.g. "before 10am", "evenings"
+}
+
 export interface Cadence {
-  days: number[]        // 0=Sun…6=Sat; [] means every day
-  timeWindow?: { start: string; end: string }  // "09:00" format
+  days: number[]   // 0=Sun…6=Sat; [] means every day
+  time?: CadenceTime
 }
 
 export interface Front {
   id: string
   name: string
   type: FrontType
-  color: string         // oklch hue value as string, e.g. "256"
+  color: string
   status: FrontStatus
   items: Item[]
   cadence: Cadence
-  prerequisites: string[]   // front IDs
+  prerequisites: string[]
+  blurb?: string
   parkReason?: string
   createdAt: string
 }

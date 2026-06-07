@@ -32,28 +32,31 @@ describe('formatDate', () => {
 })
 
 describe('getTimeNudge', () => {
-  // now = 08:00 local
-  const before = new Date(2026, 5, 5, 8, 0, 0)   // 08:00
-  const within = new Date(2026, 5, 5, 12, 0, 0)   // 12:00
-  const after  = new Date(2026, 5, 5, 18, 0, 0)   // 18:00
+  const at = (h: number) => new Date(2026, 5, 5, h, 0, 0)
 
-  it('returns null when timeWindow is undefined', () => {
-    expect(getTimeNudge(undefined, within)).toBeNull()
+  it('returns null when time is undefined', () => {
+    expect(getTimeNudge(undefined, at(12))).toBeNull()
   })
-  it('returns "later" when now is before the window start', () => {
-    expect(getTimeNudge({ start: '09:00', end: '17:00' }, before)).toBe('later')
+  it('returns null when time has no from or until', () => {
+    expect(getTimeNudge({}, at(12))).toBeNull()
   })
-  it('returns "active" when now equals the window start', () => {
-    expect(getTimeNudge({ start: '08:00', end: '17:00' }, before)).toBe('active')
+  it('until: returns active when now is before the hour', () => {
+    expect(getTimeNudge({ until: 10 }, at(8))).toBe('active')
   })
-  it('returns "active" when now is inside the window', () => {
-    expect(getTimeNudge({ start: '09:00', end: '17:00' }, within)).toBe('active')
+  it('until: returns passed when now equals the hour', () => {
+    expect(getTimeNudge({ until: 10 }, at(10))).toBe('passed')
   })
-  it('returns "passed" when now equals the window end', () => {
-    expect(getTimeNudge({ start: '09:00', end: '18:00' }, after)).toBe('passed')
+  it('until: returns passed when now is after the hour', () => {
+    expect(getTimeNudge({ until: 10 }, at(14))).toBe('passed')
   })
-  it('returns "passed" when now is after the window end', () => {
-    expect(getTimeNudge({ start: '09:00', end: '17:00' }, after)).toBe('passed')
+  it('from: returns later when now is before the hour', () => {
+    expect(getTimeNudge({ from: 18 }, at(16))).toBe('later')
+  })
+  it('from: returns active when now equals the hour', () => {
+    expect(getTimeNudge({ from: 18 }, at(18))).toBe('active')
+  })
+  it('from: returns active when now is after the hour', () => {
+    expect(getTimeNudge({ from: 18 }, at(20))).toBe('active')
   })
 })
 

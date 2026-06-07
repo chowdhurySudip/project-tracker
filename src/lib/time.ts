@@ -1,3 +1,5 @@
+import type { CadenceTime } from '@/types'
+
 export function formatElapsed(seconds: number): string {
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
@@ -19,18 +21,14 @@ export function formatDate(iso: string): string {
 export type TimeNudge = 'later' | 'active' | 'passed'
 
 export function getTimeNudge(
-  timeWindow: { start: string; end: string } | undefined,
+  time: CadenceTime | undefined,
   now: Date
 ): TimeNudge | null {
-  if (!timeWindow) return null
-  const nowMins = now.getHours() * 60 + now.getMinutes()
-  const [startH, startM] = timeWindow.start.split(':').map(Number)
-  const [endH, endM] = timeWindow.end.split(':').map(Number)
-  const startMins = startH * 60 + startM
-  const endMins = endH * 60 + endM
-  if (nowMins < startMins) return 'later'
-  if (nowMins >= endMins) return 'passed'
-  return 'active'
+  if (!time) return null
+  const nowHour = now.getHours()
+  if (time.until != null) return nowHour < time.until ? 'active' : 'passed'
+  if (time.from != null) return nowHour >= time.from ? 'active' : 'later'
+  return null
 }
 
 export function isOnCadenceToday(cadence: { days: number[] }, now: Date): boolean {
