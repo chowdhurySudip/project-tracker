@@ -140,6 +140,7 @@ export function FrontModal({ front, onClose }: FrontModalProps) {
   const [prereqs, setPrereqs] = useState<string[]>(front?.prerequisites ?? [])
   const [blurb, setBlurb] = useState(front?.blurb ?? '')
   const [time, setTime] = useState<CadenceTime | undefined>(front?.cadence.time)
+  const [firstTask, setFirstTask] = useState('')
   const isEdit = !!front
 
   const allFronts = useStore((state) => state.fronts)
@@ -167,7 +168,10 @@ export function FrontModal({ front, onClose }: FrontModalProps) {
     if (isEdit) {
       useStore.getState().updateFront(front!.id, data)
     } else {
-      useStore.getState().addFront(data)
+      const newId = useStore.getState().addFront(data)
+      if (firstTask.trim()) {
+        useStore.getState().addItem(newId, { text: firstTask.trim(), focusLevel: 'medium' })
+      }
     }
     onClose()
   }
@@ -300,6 +304,17 @@ export function FrontModal({ front, onClose }: FrontModalProps) {
                   )
                 })}
               </div>
+            </Field>
+          )}
+
+          {!isEdit && (
+            <Field label="First move" hint="your starting next-action">
+              <input
+                value={firstTask}
+                onChange={(e) => setFirstTask(e.target.value)}
+                placeholder="What's step one?"
+                style={inputStyle}
+              />
             </Field>
           )}
         </div>

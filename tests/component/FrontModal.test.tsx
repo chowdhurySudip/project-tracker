@@ -99,4 +99,28 @@ describe('FrontModal', () => {
     await userEvent.click(screen.getByText('Create front'))
     expect(useStore.getState().fronts[0].cadence.time).toEqual({ from: 18, label: 'evenings' })
   })
+
+  it('create mode: first move creates the front and one item with that text', async () => {
+    render(<FrontModal onClose={vi.fn()} />)
+    await userEvent.type(screen.getByPlaceholderText('e.g. Rust for systems'), 'My Project')
+    await userEvent.type(screen.getByPlaceholderText("What's step one?"), 'Set up repo')
+    await userEvent.click(screen.getByText('Create front'))
+    const front = useStore.getState().fronts[0]
+    expect(front.items).toHaveLength(1)
+    expect(front.items[0].text).toBe('Set up repo')
+    expect(front.items[0].focusLevel).toBe('medium')
+  })
+
+  it('create mode: empty first move creates the front with zero items', async () => {
+    render(<FrontModal onClose={vi.fn()} />)
+    await userEvent.type(screen.getByPlaceholderText('e.g. Rust for systems'), 'My Project')
+    await userEvent.click(screen.getByText('Create front'))
+    expect(useStore.getState().fronts[0].items).toHaveLength(0)
+  })
+
+  it('first move field is not shown in edit mode', () => {
+    useStore.setState({ fronts: [EXISTING_FRONT], captures: [], session: null })
+    render(<FrontModal front={EXISTING_FRONT} onClose={vi.fn()} />)
+    expect(screen.queryByPlaceholderText("What's step one?")).not.toBeInTheDocument()
+  })
 })
