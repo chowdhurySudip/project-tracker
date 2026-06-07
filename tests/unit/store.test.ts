@@ -28,6 +28,11 @@ describe('fronts', () => {
     expect(fronts[0].name).toBe('My Project')
   })
 
+  it('addFront returns the new front id', () => {
+    const id = useStore.getState().addFront(FRONT_DATA)
+    expect(id).toBe(useStore.getState().fronts[0].id)
+  })
+
   it('updateFront patches only specified fields, leaves others unchanged', () => {
     useStore.getState().addFront(FRONT_DATA)
     const id = useStore.getState().fronts[0].id

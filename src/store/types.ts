@@ -2,7 +2,7 @@ import type { Front, Capture, Session, Item } from '@/types'
 
 export type FrontsSlice = {
   fronts: Front[]
-  addFront: (data: Omit<Front, 'id' | 'createdAt' | 'items'>) => void
+  addFront: (data: Omit<Front, 'id' | 'createdAt' | 'items'>) => string
   updateFront: (id: string, updates: Partial<Omit<Front, 'id' | 'createdAt'>>) => void
   deleteFront: (id: string) => void
 }

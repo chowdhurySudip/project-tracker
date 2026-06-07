@@ -4,13 +4,16 @@ import { generateId } from '@/lib/ids'
 
 export const createFrontsSlice: StateCreator<AppStore, [], [], FrontsSlice> = (set) => ({
   fronts: [],
-  addFront: (data) =>
+  addFront: (data) => {
+    const id = generateId()
     set((state) => ({
       fronts: [
         ...state.fronts,
-        { ...data, id: generateId(), createdAt: new Date().toISOString(), items: [] },
+        { ...data, id, createdAt: new Date().toISOString(), items: [] },
       ],
-    })),
+    }))
+    return id
+  },
   updateFront: (id, updates) =>
     set((state) => ({
       fronts: state.fronts.map((f) => (f.id === id ? { ...f, ...updates } : f)),
