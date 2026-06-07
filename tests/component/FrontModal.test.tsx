@@ -77,6 +77,26 @@ describe('FrontModal', () => {
     expect(screen.getByDisplayValue('Old description')).toBeInTheDocument()
   })
 
+  it('edit mode: saving with updated description writes blurb to the store', async () => {
+    const front = { ...EXISTING_FRONT, blurb: 'Old description' }
+    useStore.setState({ fronts: [front], captures: [], session: null })
+    render(<FrontModal front={front} onClose={vi.fn()} />)
+    const blurbInput = screen.getByDisplayValue('Old description')
+    await userEvent.clear(blurbInput)
+    await userEvent.type(blurbInput, 'New description')
+    await userEvent.click(screen.getByText('Save changes'))
+    expect(useStore.getState().fronts[0].blurb).toBe('New description')
+  })
+
+  it('edit mode: cadence.time is pre-populated — Before mode shown when until is set', () => {
+    const front = { ...EXISTING_FRONT, cadence: { ...EXISTING_FRONT.cadence, time: { until: 10, label: 'before 10am' } } }
+    useStore.setState({ fronts: [front], captures: [], session: null })
+    render(<FrontModal front={front} onClose={vi.fn()} />)
+    // The hour spinner only renders when mode !== 'any', so its presence confirms pre-population
+    expect(screen.getByLabelText('Decrease hour')).toBeInTheDocument()
+    expect(screen.getByLabelText('Increase hour')).toBeInTheDocument()
+  })
+
   it('time window defaults to Anytime — cadence.time is undefined', async () => {
     render(<FrontModal onClose={vi.fn()} />)
     await userEvent.type(screen.getByPlaceholderText('e.g. Rust for systems'), 'My Project')
