@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatElapsed, formatDate, getTimeNudge, isOnCadenceToday } from '@/lib/time'
+import { formatElapsed, formatDate, getTimeNudge, isOnCadenceToday, fmtHour } from '@/lib/time'
 
 describe('formatElapsed', () => {
   it('formats 0 seconds as 00:00', () => {
@@ -76,5 +76,29 @@ describe('isOnCadenceToday', () => {
   })
   it('handles Sunday (day 0) correctly', () => {
     expect(isOnCadenceToday({ days: [0] }, SUNDAY)).toBe(true)
+  })
+})
+
+describe('fmtHour', () => {
+  it('formats midnight as 12am', () => {
+    expect(fmtHour(0)).toBe('12am')
+  })
+  it('formats 9 as 9am', () => {
+    expect(fmtHour(9)).toBe('9am')
+  })
+  it('formats 10 as 10am', () => {
+    expect(fmtHour(10)).toBe('10am')
+  })
+  it('formats noon as 12pm', () => {
+    expect(fmtHour(12)).toBe('12pm')
+  })
+  it('formats 14 as 2pm', () => {
+    expect(fmtHour(14)).toBe('2pm')
+  })
+  it('formats 18 as 6pm', () => {
+    expect(fmtHour(18)).toBe('6pm')
+  })
+  it('formats 23 as 11pm', () => {
+    expect(fmtHour(23)).toBe('11pm')
   })
 })

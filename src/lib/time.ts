@@ -35,3 +35,9 @@ export function isOnCadenceToday(cadence: { days: number[] }, now: Date): boolea
   if (cadence.days.length === 0) return true
   return cadence.days.includes(now.getUTCDay())
 }
+
+export function fmtHour(h: number): string {
+  const period = h < 12 ? 'am' : 'pm'
+  const display = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${display}${period}`
+}
