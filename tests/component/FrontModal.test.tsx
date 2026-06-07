@@ -76,4 +76,27 @@ describe('FrontModal', () => {
     render(<FrontModal front={front} onClose={vi.fn()} />)
     expect(screen.getByDisplayValue('Old description')).toBeInTheDocument()
   })
+
+  it('time window defaults to Anytime — cadence.time is undefined', async () => {
+    render(<FrontModal onClose={vi.fn()} />)
+    await userEvent.type(screen.getByPlaceholderText('e.g. Rust for systems'), 'My Project')
+    await userEvent.click(screen.getByText('Create front'))
+    expect(useStore.getState().fronts[0].cadence.time).toBeUndefined()
+  })
+
+  it('time window: selecting Before saves { until: 10, label: "before 10am" }', async () => {
+    render(<FrontModal onClose={vi.fn()} />)
+    await userEvent.type(screen.getByPlaceholderText('e.g. Rust for systems'), 'My Project')
+    await userEvent.click(screen.getByRole('button', { name: 'Before' }))
+    await userEvent.click(screen.getByText('Create front'))
+    expect(useStore.getState().fronts[0].cadence.time).toEqual({ until: 10, label: 'before 10am' })
+  })
+
+  it('time window: selecting After saves { from: 18, label: "evenings" }', async () => {
+    render(<FrontModal onClose={vi.fn()} />)
+    await userEvent.type(screen.getByPlaceholderText('e.g. Rust for systems'), 'My Project')
+    await userEvent.click(screen.getByRole('button', { name: 'After' }))
+    await userEvent.click(screen.getByText('Create front'))
+    expect(useStore.getState().fronts[0].cadence.time).toEqual({ from: 18, label: 'evenings' })
+  })
 })

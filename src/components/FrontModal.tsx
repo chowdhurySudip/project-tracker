@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useStore } from '@/store'
 import { Icon } from './ui/Icon'
 import { hsl, tint, getFrontHue } from '@/lib/ui'
-import type { Front, FrontType, FrontStatus } from '@/types'
+import { fmtHour } from '@/lib/time'
+import type { Front, FrontType, FrontStatus, CadenceTime } from '@/types'
 
 interface FrontModalProps { front?: Front; onClose: () => void }
 
@@ -43,6 +44,93 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
+function TimePicker({
+  value,
+  onChange,
+  hue = 256,
+}: {
+  value: CadenceTime | undefined
+  onChange: (v: CadenceTime | undefined) => void
+  hue?: number
+}) {
+  const mode = !value ? 'any' : value.until != null ? 'before' : 'after'
+  const hour = value ? (value.until != null ? value.until : (value.from ?? 18)) : 10
+
+  function computeLabel(t: { until?: number; from?: number }): string {
+    if (t.until != null) return `before ${fmtHour(t.until)}`
+    if (t.from != null) return t.from >= 18 ? 'evenings' : t.from >= 12 ? 'afternoons' : `${fmtHour(t.from)}+`
+    return ''
+  }
+
+  function setMode(m: 'any' | 'before' | 'after') {
+    if (m === 'any') { onChange(undefined); return }
+    const t = m === 'before' ? { until: 10 } : { from: 18 }
+    onChange({ ...t, label: computeLabel(t) })
+  }
+
+  function setHour(h: number) {
+    const clamped = Math.max(5, Math.min(23, h))
+    const t = mode === 'before' ? { until: clamped } : { from: clamped }
+    onChange({ ...t, label: computeLabel(t) })
+  }
+
+  const segOptions: Array<{ value: 'any' | 'before' | 'after'; label: string }> = [
+    { value: 'any', label: 'Anytime' },
+    { value: 'before', label: 'Before' },
+    { value: 'after', label: 'After' },
+  ]
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+      <div style={{ display: 'inline-flex', gap: 4, background: 'var(--sunk)', padding: 3, borderRadius: 9 }}>
+        {segOptions.map((o) => {
+          const active = mode === o.value
+          return (
+            <button
+              key={o.value}
+              onClick={() => setMode(o.value)}
+              style={{
+                padding: '5px 11px',
+                borderRadius: 7,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
+                transition: 'all .12s',
+                background: active ? 'var(--surface)' : 'transparent',
+                color: active ? 'var(--ink)' : 'var(--ink-3)',
+                boxShadow: active ? 'var(--shadow-1)' : 'none',
+              }}
+            >
+              {o.label}
+            </button>
+          )
+        })}
+      </div>
+      {mode !== 'any' && (
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 2, border: '1px solid var(--line)', borderRadius: 8, padding: 2 }}>
+          <button
+            onClick={() => setHour(hour - 1)}
+            aria-label="Decrease hour"
+            style={{ width: 26, height: 26, borderRadius: 6, color: 'var(--ink-3)', fontSize: 15 }}
+          >
+            −
+          </button>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 600, minWidth: 42, textAlign: 'center' }}>
+            {fmtHour(hour)}
+          </span>
+          <button
+            onClick={() => setHour(hour + 1)}
+            aria-label="Increase hour"
+            style={{ width: 26, height: 26, borderRadius: 6, color: 'var(--ink-3)', fontSize: 15 }}
+          >
+            +
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function FrontModal({ front, onClose }: FrontModalProps) {
   const existingHue = front ? getFrontHue(front.color) : 256
   const [name, setName] = useState(front?.name ?? '')
@@ -51,6 +139,7 @@ export function FrontModal({ front, onClose }: FrontModalProps) {
   const [days, setDays] = useState<number[]>(front?.cadence.days ?? [1, 2, 3, 4, 5])
   const [prereqs, setPrereqs] = useState<string[]>(front?.prerequisites ?? [])
   const [blurb, setBlurb] = useState(front?.blurb ?? '')
+  const [time, setTime] = useState<CadenceTime | undefined>(front?.cadence.time)
   const isEdit = !!front
 
   const allFronts = useStore((state) => state.fronts)
@@ -72,7 +161,7 @@ export function FrontModal({ front, onClose }: FrontModalProps) {
       color: String(hue),
       blurb: blurb.trim() || undefined,
       status: (front?.status ?? 'active') as FrontStatus,
-      cadence: { days },
+      cadence: { days, time },
       prerequisites: prereqs,
     }
     if (isEdit) {
@@ -186,6 +275,10 @@ export function FrontModal({ front, onClose }: FrontModalProps) {
                 ))}
               </div>
             </div>
+          </Field>
+
+          <Field label="Time window" hint="when it's best — soft nudge only">
+            <TimePicker value={time} onChange={setTime} hue={hue} />
           </Field>
 
           {eligible.length > 0 && (
