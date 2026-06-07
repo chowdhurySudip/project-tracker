@@ -50,6 +50,7 @@ export function FrontModal({ front, onClose }: FrontModalProps) {
   const [hue, setHue] = useState(existingHue)
   const [days, setDays] = useState<number[]>(front?.cadence.days ?? [1, 2, 3, 4, 5])
   const [prereqs, setPrereqs] = useState<string[]>(front?.prerequisites ?? [])
+  const [blurb, setBlurb] = useState(front?.blurb ?? '')
   const isEdit = !!front
 
   const allFronts = useStore((state) => state.fronts)
@@ -69,6 +70,7 @@ export function FrontModal({ front, onClose }: FrontModalProps) {
       name: name.trim(),
       type,
       color: String(hue),
+      blurb: blurb.trim() || undefined,
       status: (front?.status ?? 'active') as FrontStatus,
       cadence: { days },
       prerequisites: prereqs,
@@ -150,6 +152,15 @@ export function FrontModal({ front, onClose }: FrontModalProps) {
               </div>
             </Field>
           </div>
+
+          <Field label="Description" hint="one line about this front">
+            <input
+              value={blurb}
+              onChange={(e) => setBlurb(e.target.value)}
+              placeholder="What is this front about?"
+              style={inputStyle}
+            />
+          </Field>
 
           <Field label="Cadence" hint="which days this belongs to — a nudge, not a lock">
             <div>

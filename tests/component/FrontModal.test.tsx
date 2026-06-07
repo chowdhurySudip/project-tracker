@@ -61,4 +61,19 @@ describe('FrontModal', () => {
     await userEvent.click(screen.getByText('Create front'))
     expect(onClose).toHaveBeenCalledOnce()
   })
+
+  it('create mode: submitting with description persists blurb on the front', async () => {
+    render(<FrontModal onClose={vi.fn()} />)
+    await userEvent.type(screen.getByPlaceholderText('e.g. Rust for systems'), 'My Project')
+    await userEvent.type(screen.getByPlaceholderText('What is this front about?'), 'A learning project')
+    await userEvent.click(screen.getByText('Create front'))
+    expect(useStore.getState().fronts[0].blurb).toBe('A learning project')
+  })
+
+  it('edit mode: description is pre-populated from front.blurb', () => {
+    const front = { ...EXISTING_FRONT, blurb: 'Old description' }
+    useStore.setState({ fronts: [front], captures: [], session: null })
+    render(<FrontModal front={front} onClose={vi.fn()} />)
+    expect(screen.getByDisplayValue('Old description')).toBeInTheDocument()
+  })
 })
