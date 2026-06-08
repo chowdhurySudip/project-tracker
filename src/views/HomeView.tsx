@@ -52,11 +52,10 @@ function InProgressTag({ hue }: { hue: number }) {
 
 function HeroCard({ front }: { front: Front }) {
   const navigate = useNavigate()
-  const session = useStore((s) => s.session)
   const hue = getFrontHue(front.color)
   const progress = getProgress(front)
-  const nextItem = getNextItem(front)
-  const isInProgress = session?.frontId === front.id
+  const nextOpenItem = front.items.find((i) => i.status === 'open')
+  const isInProgress = front.items.some((i) => i.status === 'in_progress')
 
   return (
     <div style={{ position: 'relative', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: `linear-gradient(135deg, ${tint(hue, 97, 2)}, ${tint(hue, 94, 4)})`, border: `1px solid ${tint(hue, 87, 5)}`, padding: '26px 28px', marginBottom: 22 }}>
@@ -74,27 +73,20 @@ function HeroCard({ front }: { front: Front }) {
             <span style={{ fontWeight: 600, fontSize: 15 }}>{front.name}</span>
           </div>
           <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.18, maxWidth: 560 }}>
-            {nextItem?.text || 'All items complete!'}
+            {nextOpenItem?.text || 'All items complete!'}
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 18, flexWrap: 'wrap' }}>
-            {isInProgress ? (
-              <button onClick={() => navigate(`/front/${front.id}`)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 20px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', boxShadow: 'var(--shadow-1)' }}>
-                <Icon name="timer" size={17} /> Session running…
-              </button>
-            ) : nextItem ? (
+            {nextOpenItem && !isInProgress && (
               <button
-                onClick={() => useStore.getState().startSession(front.id, nextItem.id)}
+                onClick={() => useStore.getState().startItem(front.id, nextOpenItem.id)}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 20px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: 'var(--accent)', color: '#fff', boxShadow: 'var(--shadow-1)' }}
               >
-                <Icon name="play" size={17} /> Start a session
+                <Icon name="play" size={17} /> Start
               </button>
-            ) : null}
-            {nextItem && !isInProgress && (
-              <button
-                onClick={() => useStore.getState().updateItem(front.id, nextItem.id, { status: 'done', doneAt: new Date().toISOString() })}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 20px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', boxShadow: 'var(--shadow-1)' }}
-              >
-                <Icon name="check" size={17} /> Mark done
+            )}
+            {isInProgress && (
+              <button onClick={() => navigate(`/front/${front.id}`)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 20px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', boxShadow: 'var(--shadow-1)' }}>
+                <Icon name="timer" size={17} /> In progress…
               </button>
             )}
             <button
@@ -119,11 +111,10 @@ function HeroCard({ front }: { front: Front }) {
 function FrontCard({ front, allFronts }: { front: Front; allFronts: Front[] }) {
   const [hover, setHover] = useState(false)
   const navigate = useNavigate()
-  const session = useStore((s) => s.session)
   const hue = getFrontHue(front.color)
   const progress = getProgress(front)
   const nextItem = getNextItem(front)
-  const isInProgress = session?.frontId === front.id
+  const isInProgress = front.items.some((i) => i.status === 'in_progress')
   const isBlocked = front.prerequisites.some((pid) =>
     allFronts.find((f) => f.id === pid && f.status === 'active'),
   )
@@ -225,23 +216,15 @@ function FrontCard({ front, allFronts }: { front: Front; allFronts: Front[] }) {
         <div style={{ display: 'flex', gap: 8, marginTop: 14, alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
           {isInProgress ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, color: hsl(hue, 42), background: tint(hue, 96, 3), border: `1px solid ${tint(hue, 84, 6)}` }}>
-              <Icon name="timer" size={15} /> Running…
+              <Icon name="timer" size={15} /> In progress…
             </span>
           ) : nextItem ? (
-            <>
-              <button
-                onClick={() => useStore.getState().startSession(front.id, nextItem.id)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 11px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, background: 'var(--accent)', color: '#fff', boxShadow: 'var(--shadow-1)' }}
-              >
-                <Icon name="play" size={15} /> Start
-              </button>
-              <button
-                onClick={() => useStore.getState().updateItem(front.id, nextItem.id, { status: 'done', doneAt: new Date().toISOString() })}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 11px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, color: 'var(--ink-2)' }}
-              >
-                <Icon name="check" size={15} /> Done
-              </button>
-            </>
+            <button
+              onClick={() => useStore.getState().startItem(front.id, nextItem.id)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 11px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, background: 'var(--accent)', color: '#fff', boxShadow: 'var(--shadow-1)' }}
+            >
+              <Icon name="play" size={15} /> Start
+            </button>
           ) : null}
           <button
             onClick={() => navigate(`/front/${front.id}`)}
