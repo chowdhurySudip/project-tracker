@@ -12,12 +12,12 @@ test('create a front — appears in sidebar and HomeView', async ({ page }) => {
   await page.goto('/')
 
   // Open FrontModal via sidebar button
-  await page.getByText('+ New Front').click()
+  await page.getByRole('button', { name: 'New front' }).click()
   await expect(page.getByRole('dialog')).toBeVisible()
 
   // Fill and submit
-  await page.getByPlaceholder('Front name').fill('My Test Project')
-  await page.getByText('Create').click()
+  await page.getByPlaceholder('e.g. Rust for systems').fill('My Test Project')
+  await page.getByRole('button', { name: 'Create front' }).click()
 
   // Front appears in sidebar nav list as a link
   await expect(page.getByRole('link', { name: 'My Test Project' })).toBeVisible()
@@ -32,9 +32,9 @@ test('capture an idea, file it to a front, inbox clears', async ({ page }) => {
   await page.goto('/')
 
   // Create a front first
-  await page.getByText('+ New Front').click()
-  await page.getByPlaceholder('Front name').fill('Target Front')
-  await page.getByText('Create').click()
+  await page.getByRole('button', { name: 'New front' }).click()
+  await page.getByPlaceholder('e.g. Rust for systems').fill('Target Front')
+  await page.getByRole('button', { name: 'Create front' }).click()
 
   // Open CaptureModal with keyboard shortcut
   await page.keyboard.press('c')
@@ -42,7 +42,7 @@ test('capture an idea, file it to a front, inbox clears', async ({ page }) => {
 
   // Type and save
   await page.getByPlaceholder('Capture anything…').fill('My great idea')
-  await page.getByText('Save').click()
+  await page.getByRole('button', { name: 'Save' }).click()
 
   // Capture appears in inbox
   await expect(page.getByText('My great idea')).toBeVisible()
@@ -56,51 +56,78 @@ test('capture an idea, file it to a front, inbox clears', async ({ page }) => {
   await expect(page.getByText('My great idea')).not.toBeVisible()
 })
 
-// ── Flow 3: Session — complete then abandon ─────────────────────────────────
+// ── Flow 3: Start item, complete with remark ────────────────────────────────
 
-test('session: Complete marks item done; Stop leaves it open', async ({ page }) => {
+test('start item marks in_progress; complete with remark appears in done list', async ({ page }) => {
   await page.goto('/')
 
-  // Create a front
-  await page.getByText('+ New Front').click()
-  await page.getByPlaceholder('Front name').fill('Work Front')
-  await page.getByText('Create').click()
+  await page.getByRole('button', { name: 'New front' }).click()
+  await page.getByPlaceholder('e.g. Rust for systems').fill('Work Front')
+  await page.getByRole('button', { name: 'Create front' }).click()
 
-  // Navigate to detail view via sidebar link
   await page.getByRole('link', { name: 'Work Front' }).click()
 
-  // Add two items
   await page.getByText('+ Add item').click()
   await page.getByPlaceholder('New item…').fill('Important task')
   await page.keyboard.press('Enter')
 
+  // Start marks item as in_progress — no session bar
+  await page.getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByText('In progress')).toBeVisible()
+  await expect(page.getByRole('status')).not.toBeVisible()
+
+  // Checkbox opens CompletionPopover
+  await page.getByLabel('Complete item').click()
+  await expect(page.getByRole('dialog', { name: 'Complete item' })).toBeVisible()
+
+  // Type remark and confirm
+  await page.getByPlaceholder('Remarks (optional)').fill('Wrapped up nicely')
+  await page.getByRole('button', { name: 'Mark done' }).click()
+
+  // Item is now done with log text visible
+  await expect(page.getByText('Done · 1')).toBeVisible()
+  await expect(page.getByText('Wrapped up nicely')).toBeVisible()
+})
+
+test('completing item without remark creates no log entry', async ({ page }) => {
+  await page.goto('/')
+
+  await page.getByRole('button', { name: 'New front' }).click()
+  await page.getByPlaceholder('e.g. Rust for systems').fill('Front B')
+  await page.getByRole('button', { name: 'Create front' }).click()
+  await page.getByRole('link', { name: 'Front B' }).click()
+
   await page.getByText('+ Add item').click()
-  await page.getByPlaceholder('New item…').fill('Another task')
+  await page.getByPlaceholder('New item…').fill('Quick task')
   await page.keyboard.press('Enter')
 
-  // Start session on the first item
-  const startButtons = page.getByText('Start')
-  await startButtons.first().click()
+  await page.getByLabel('Complete item').click()
+  await page.getByRole('button', { name: 'Mark done' }).click()
 
-  // SessionBar should appear
-  await expect(page.getByRole('status')).toBeVisible()
-  await expect(page.getByRole('status').getByText('Work Front')).toBeVisible()
+  await expect(page.getByText('Done · 1')).toBeVisible()
+  // No log chip should appear on the done item
+  await expect(page.getByText('0 logs')).not.toBeVisible()
+})
 
-  // Complete → item marked done, SessionBar disappears
-  await page.getByText('Complete').click()
-  await expect(page.getByRole('status')).not.toBeVisible()
-  await expect(page.getByText('Done (1)')).toBeVisible()
+test('dismissing completion popover leaves item unchanged', async ({ page }) => {
+  await page.goto('/')
 
-  // Start session on the second item
-  await page.getByText('Start').click()
-  await expect(page.getByRole('status')).toBeVisible()
+  await page.getByRole('button', { name: 'New front' }).click()
+  await page.getByPlaceholder('e.g. Rust for systems').fill('Front C')
+  await page.getByRole('button', { name: 'Create front' }).click()
+  await page.getByRole('link', { name: 'Front C' }).click()
 
-  // Stop (abandon) → item stays open
-  await page.getByText('Stop').click()
-  await expect(page.getByRole('status')).not.toBeVisible()
-  await expect(page.getByText('Another task')).toBeVisible()
-  // Done count should still be 1
-  await expect(page.getByText('Done (1)')).toBeVisible()
+  await page.getByText('+ Add item').click()
+  await page.getByPlaceholder('New item…').fill('Undecided task')
+  await page.keyboard.press('Enter')
+
+  await page.getByLabel('Complete item').click()
+  await expect(page.getByRole('dialog', { name: 'Complete item' })).toBeVisible()
+  await page.getByRole('button', { name: 'Cancel' }).click()
+
+  // Item still visible as active — no done section
+  await expect(page.getByText('Undecided task')).toBeVisible()
+  await expect(page.getByText('Done · 1')).not.toBeVisible()
 })
 
 // ── Flow 4: Weekly review ───────────────────────────────────────────────────
@@ -108,27 +135,22 @@ test('session: Complete marks item done; Stop leaves it open', async ({ page }) 
 test('completed item count shows on the review page', async ({ page }) => {
   await page.goto('/')
 
-  // Create front + item
-  await page.getByText('+ New Front').click()
-  await page.getByPlaceholder('Front name').fill('Review Front')
-  await page.getByText('Create').click()
+  await page.getByRole('button', { name: 'New front' }).click()
+  await page.getByPlaceholder('e.g. Rust for systems').fill('Review Front')
+  await page.getByRole('button', { name: 'Create front' }).click()
 
-  // Navigate to detail view via sidebar link
   await page.getByRole('link', { name: 'Review Front' }).click()
   await page.getByText('+ Add item').click()
   await page.getByPlaceholder('New item…').fill('Finish this')
   await page.keyboard.press('Enter')
 
-  // Start and complete the session
-  await page.getByText('Start').click()
-  await expect(page.getByRole('status')).toBeVisible()
-  await page.getByText('Complete').click()
+  // Mark done via checkbox + popover (no session needed)
+  await page.getByLabel('Complete item').click()
+  await page.getByRole('button', { name: 'Mark done' }).click()
 
-  // Navigate to review
-  await page.getByRole('link', { name: 'Review', exact: true }).click()
+  await page.getByRole('link', { name: 'Weekly review' }).click()
   await expect(page).toHaveURL('/review')
 
-  // Done items count card shows 1
   const doneCard = page.getByTestId('count-done-items')
   await expect(doneCard.getByText('1')).toBeVisible()
 })
@@ -140,6 +162,6 @@ test('unknown front ID redirects to home', async ({ page }) => {
 
   // Should redirect to / and render HomeView
   await expect(page).toHaveURL('/')
-  // HomeView always shows "Focus now" section header
-  await expect(page.getByRole('heading', { name: 'Focus now' })).toBeVisible()
+  // HomeView always shows the stats section
+  await expect(page.getByText('Active fronts')).toBeVisible()
 })
