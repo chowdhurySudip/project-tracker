@@ -124,7 +124,9 @@ export function DetailView() {
       {/* Open items */}
       <div style={{ marginTop: 22 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <span className="eyebrow">Open · {openItems.length}</span>
+          <span className="eyebrow">
+            Active · {openItems.length}
+          </span>
           <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>reorder with ↑ ↓ · Start to begin · ✓ to complete</span>
         </div>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden', boxShadow: 'var(--shadow-1)' }}>

@@ -54,7 +54,7 @@ function HeroCard({ front }: { front: Front }) {
   const navigate = useNavigate()
   const hue = getFrontHue(front.color)
   const progress = getProgress(front)
-  const nextOpenItem = front.items.find((i) => i.status === 'open')
+  const nextItem = getNextItem(front)
   const isInProgress = front.items.some((i) => i.status === 'in_progress')
 
   return (
@@ -73,12 +73,12 @@ function HeroCard({ front }: { front: Front }) {
             <span style={{ fontWeight: 600, fontSize: 15 }}>{front.name}</span>
           </div>
           <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.18, maxWidth: 560 }}>
-            {nextOpenItem?.text || 'All items complete!'}
+            {nextItem?.text || 'All items complete!'}
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 18, flexWrap: 'wrap' }}>
-            {nextOpenItem && !isInProgress && (
+            {nextItem && !isInProgress && (
               <button
-                onClick={() => useStore.getState().startItem(front.id, nextOpenItem.id)}
+                onClick={() => useStore.getState().startItem(front.id, nextItem.id)}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 20px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: 'var(--accent)', color: '#fff', boxShadow: 'var(--shadow-1)' }}
               >
                 <Icon name="play" size={17} /> Start
