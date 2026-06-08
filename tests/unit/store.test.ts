@@ -166,6 +166,30 @@ describe('items', () => {
     expect(item.logs[0].id).toBeDefined()
     expect(item.logs[0].createdAt).toBeDefined()
   })
+
+  it('startItem sets status to in_progress and stamps startedAt', () => {
+    useStore.getState().addItem(frontId, { text: 'Work' })
+    const itemId = useStore.getState().fronts[0].items[0].id
+    useStore.getState().startItem(frontId, itemId)
+    const item = useStore.getState().fronts[0].items[0]
+    expect(item.status).toBe('in_progress')
+    expect(item.startedAt).toBeDefined()
+  })
+
+  it('startItem on a nonexistent item is a no-op', () => {
+    useStore.getState().startItem(frontId, 'nonexistent')
+    expect(useStore.getState().fronts[0].items).toHaveLength(0)
+  })
+
+  it('startItem on multiple items — all can be in_progress simultaneously', () => {
+    useStore.getState().addItem(frontId, { text: 'A' })
+    useStore.getState().addItem(frontId, { text: 'B' })
+    const [a, b] = useStore.getState().fronts[0].items
+    useStore.getState().startItem(frontId, a.id)
+    useStore.getState().startItem(frontId, b.id)
+    const items = useStore.getState().fronts[0].items
+    expect(items.every((i) => i.status === 'in_progress')).toBe(true)
+  })
 })
 
 describe('captures', () => {

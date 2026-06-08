@@ -12,6 +12,7 @@ export type ItemsSlice = {
   updateItem: (frontId: string, itemId: string, updates: Partial<Omit<Item, 'id' | 'createdAt'>>) => void
   reorderItem: (frontId: string, itemId: string, direction: 'up' | 'down') => void
   addLog: (frontId: string, itemId: string, text: string) => void
+  startItem: (frontId: string, itemId: string) => void
 }
 
 export type CapturesSlice = {

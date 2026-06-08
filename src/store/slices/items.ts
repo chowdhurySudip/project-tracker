@@ -70,4 +70,18 @@ export const createItemsSlice: StateCreator<AppStore, [], [], ItemsSlice> = (set
         }
       }),
     })),
+  startItem: (frontId, itemId) =>
+    set((state) => ({
+      fronts: state.fronts.map((f) => {
+        if (f.id !== frontId) return f
+        return {
+          ...f,
+          items: f.items.map((item) =>
+            item.id === itemId
+              ? { ...item, status: 'in_progress' as const, startedAt: new Date().toISOString() }
+              : item
+          ),
+        }
+      }),
+    })),
 })
