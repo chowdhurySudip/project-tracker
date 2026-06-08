@@ -31,13 +31,13 @@ describe('FrontModal', () => {
   })
 
   it('edit mode: fields are pre-populated with front data', () => {
-    useStore.setState({ fronts: [EXISTING_FRONT], captures: [], session: null })
+    useStore.setState({ fronts: [EXISTING_FRONT], captures: [] })
     render(<FrontModal front={EXISTING_FRONT} onClose={vi.fn()} />)
     expect(screen.getByDisplayValue('Existing')).toBeInTheDocument()
   })
 
   it('edit mode: submitting calls updateFront with changed name', async () => {
-    useStore.setState({ fronts: [EXISTING_FRONT], captures: [], session: null })
+    useStore.setState({ fronts: [EXISTING_FRONT], captures: [] })
     render(<FrontModal front={EXISTING_FRONT} onClose={vi.fn()} />)
     const nameInput = screen.getByDisplayValue('Existing')
     await userEvent.clear(nameInput)
@@ -72,14 +72,14 @@ describe('FrontModal', () => {
 
   it('edit mode: description is pre-populated from front.blurb', () => {
     const front = { ...EXISTING_FRONT, blurb: 'Old description' }
-    useStore.setState({ fronts: [front], captures: [], session: null })
+    useStore.setState({ fronts: [front], captures: [] })
     render(<FrontModal front={front} onClose={vi.fn()} />)
     expect(screen.getByDisplayValue('Old description')).toBeInTheDocument()
   })
 
   it('edit mode: saving with updated description writes blurb to the store', async () => {
     const front = { ...EXISTING_FRONT, blurb: 'Old description' }
-    useStore.setState({ fronts: [front], captures: [], session: null })
+    useStore.setState({ fronts: [front], captures: [] })
     render(<FrontModal front={front} onClose={vi.fn()} />)
     const blurbInput = screen.getByDisplayValue('Old description')
     await userEvent.clear(blurbInput)
@@ -90,7 +90,7 @@ describe('FrontModal', () => {
 
   it('edit mode: cadence.time is pre-populated — Before mode shown when until is set', () => {
     const front = { ...EXISTING_FRONT, cadence: { ...EXISTING_FRONT.cadence, time: { until: 10, label: 'before 10am' } } }
-    useStore.setState({ fronts: [front], captures: [], session: null })
+    useStore.setState({ fronts: [front], captures: [] })
     render(<FrontModal front={front} onClose={vi.fn()} />)
     // The hour spinner only renders when mode !== 'any', so its presence confirms pre-population
     expect(screen.getByLabelText('Decrease hour')).toBeInTheDocument()
@@ -139,7 +139,7 @@ describe('FrontModal', () => {
   })
 
   it('first move field is not shown in edit mode', () => {
-    useStore.setState({ fronts: [EXISTING_FRONT], captures: [], session: null })
+    useStore.setState({ fronts: [EXISTING_FRONT], captures: [] })
     render(<FrontModal front={EXISTING_FRONT} onClose={vi.fn()} />)
     expect(screen.queryByPlaceholderText("What's step one?")).not.toBeInTheDocument()
   })

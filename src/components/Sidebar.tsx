@@ -5,7 +5,7 @@ import { FrontModal } from './FrontModal'
 import { Icon } from './ui/Icon'
 import { Glyph } from './ui/Glyph'
 import { hsl, getFrontHue } from '@/lib/ui'
-import type { Front, Session } from '@/types'
+import type { Front } from '@/types'
 
 const CATEGORIES: Array<{ key: 'project' | 'learning' | 'article'; label: string }> = [
   { key: 'project', label: 'Projects' },
@@ -13,9 +13,8 @@ const CATEGORIES: Array<{ key: 'project' | 'learning' | 'article'; label: string
   { key: 'article', label: 'Articles' },
 ]
 
-function FrontLink({ front, allFronts, session }: { front: Front; allFronts: Front[]; session: Session | null }) {
+function FrontLink({ front, allFronts }: { front: Front; allFronts: Front[] }) {
   const hue = getFrontHue(front.color)
-  const isLive = session?.frontId === front.id
   const isBlocked = front.prerequisites.some((pid) =>
     allFronts.find((f) => f.id === pid && f.status === 'active'),
   )
@@ -45,12 +44,7 @@ function FrontLink({ front, allFronts, session }: { front: Front; allFronts: Fro
       <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: isParked ? 'var(--ink-3)' : 'var(--ink-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {front.name}
       </span>
-      {isLive ? (
-        <span style={{ position: 'relative', width: 8, height: 8, flex: 'none' }}>
-          <span style={{ position: 'absolute', inset: 0, borderRadius: 99, background: hsl(hue, 58), animation: 'pulse 1.8s ease-out infinite' }} />
-          <span style={{ position: 'absolute', inset: 1, borderRadius: 99, background: hsl(hue, 58) }} />
-        </span>
-      ) : isBlocked ? (
+      {isBlocked ? (
         <Icon name="lock" size={12} style={{ color: 'var(--ink-faint)', flex: 'none' }} />
       ) : isParked ? (
         <Icon name="pause" size={12} style={{ color: 'var(--ink-faint)', flex: 'none' }} />
@@ -64,7 +58,6 @@ function FrontLink({ front, allFronts, session }: { front: Front; allFronts: Fro
 export function Sidebar() {
   const [showNewFront, setShowNewFront] = useState(false)
   const allFronts = useStore((state) => state.fronts)
-  const session = useStore((state) => state.session)
   const captures = useStore((state) => state.captures)
   const location = useLocation()
   const inboxCount = captures.filter((c) => !c.frontId).length
@@ -158,7 +151,7 @@ export function Sidebar() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {list.map((f) => (
-                <FrontLink key={f.id} front={f} allFronts={allFronts} session={session} />
+                <FrontLink key={f.id} front={f} allFronts={allFronts} />
               ))}
             </div>
           </div>

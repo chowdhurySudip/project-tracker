@@ -27,6 +27,5 @@ export const createFrontsSlice: StateCreator<AppStore, [], [], FrontsSlice> = (s
           prerequisites: f.prerequisites.filter((pid) => pid !== id),
         })),
       captures: state.captures.filter((c) => c.frontId !== id),
-      session: state.session?.frontId === id ? null : state.session,
     })),
 })
