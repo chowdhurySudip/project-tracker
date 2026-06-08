@@ -19,7 +19,6 @@ export function DetailView() {
 
   const front = useStore((state) => state.fronts.find((f) => f.id === id))
   const allFronts = useStore((state) => state.fronts)
-  const session = useStore((state) => state.session)
 
   if (!front) return <Navigate to="/" replace />
 
@@ -39,10 +38,6 @@ export function DetailView() {
   const blockers = front.prerequisites
     .map((pid) => allFronts.find((f) => f.id === pid && f.status === 'active'))
     .filter(Boolean)
-
-  function handleStartSession(itemId: string) {
-    useStore.getState().startSession(front!.id, itemId)
-  }
 
   function addItem() {
     if (!newItemText.trim()) return
@@ -130,7 +125,7 @@ export function DetailView() {
       <div style={{ marginTop: 22 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <span className="eyebrow">Open · {openItems.length}</span>
-          <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>reorder with ↑ ↓ · click start to begin a session</span>
+          <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>reorder with ↑ ↓ · Start to begin · ✓ to complete</span>
         </div>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden', boxShadow: 'var(--shadow-1)' }}>
           {openItems.map((item, i) => (
@@ -142,9 +137,6 @@ export function DetailView() {
               isFirst={i === 0}
               isLast={i === openItems.length - 1}
               isNextMove={i === 0}
-              inProgress={session?.itemId === item.id}
-              sessionActive={!!session}
-              onStartSession={handleStartSession}
             />
           ))}
           {openItems.length === 0 && (
