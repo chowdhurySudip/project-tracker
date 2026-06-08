@@ -3,17 +3,15 @@ import type { Item } from '@/types'
 import { useStore } from '@/store'
 import { Icon } from './ui/Icon'
 import { hsl, tint } from '@/lib/ui'
+import { CompletionPopover } from './CompletionPopover'
 
 interface ItemRowProps {
   item: Item
   frontId: string
-  onStartSession: (itemId: string) => void
   frontHue?: number
   isFirst?: boolean
   isLast?: boolean
   isNextMove?: boolean
-  inProgress?: boolean
-  sessionActive?: boolean
 }
 
 export function ItemRow({
@@ -23,13 +21,13 @@ export function ItemRow({
   isFirst = false,
   isLast = false,
   isNextMove = false,
-  inProgress = false,
-  sessionActive = false,
-  onStartSession,
 }: ItemRowProps) {
   const [hover, setHover] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editText, setEditText] = useState(item.text)
+  const [popoverOpen, setPopoverOpen] = useState(false)
+
+  const inProgress = item.status === 'in_progress'
   const energyHue: Record<string, number> = { deep: 256, medium: 220, light: 152 }
   const eHue = energyHue[item.focusLevel ?? 'medium'] ?? 220
 
@@ -39,14 +37,6 @@ export function ItemRow({
       useStore.getState().updateItem(frontId, item.id, { text: trimmed })
     }
     setEditing(false)
-  }
-
-  function cycleStatus() {
-    if (item.status === 'open') {
-      useStore.getState().updateItem(frontId, item.id, { status: 'in_progress' })
-    } else if (item.status === 'in_progress') {
-      useStore.getState().updateItem(frontId, item.id, { status: 'done', doneAt: new Date().toISOString() })
-    }
   }
 
   return (
@@ -89,15 +79,24 @@ export function ItemRow({
       </div>
 
       {/* Toggle checkbox */}
-      <button
-        onClick={cycleStatus}
-        style={{ width: 20, height: 20, borderRadius: 6, flex: 'none', border: `1.8px solid ${hover ? hsl(frontHue, 56) : 'var(--line)'}`, background: 'var(--surface)', display: 'grid', placeItems: 'center', transition: 'all .12s' }}
-        aria-label="Cycle status"
-      >
-        {(hover || item.status !== 'open') && (
-          <Icon name="check" size={13} style={{ color: hsl(frontHue, 56) }} stroke={2.4} />
+      <div style={{ position: 'relative', flex: 'none' }}>
+        <button
+          onClick={() => setPopoverOpen(true)}
+          style={{ width: 20, height: 20, borderRadius: 6, flex: 'none', border: `1.8px solid ${hover ? hsl(frontHue, 56) : 'var(--line)'}`, background: 'var(--surface)', display: 'grid', placeItems: 'center', transition: 'all .12s' }}
+          aria-label="Complete item"
+        >
+          {(hover || item.status !== 'open') && (
+            <Icon name="check" size={13} style={{ color: hsl(frontHue, 56) }} stroke={2.4} />
+          )}
+        </button>
+        {popoverOpen && (
+          <CompletionPopover
+            frontId={frontId}
+            itemId={item.id}
+            onClose={() => setPopoverOpen(false)}
+          />
         )}
-      </button>
+      </div>
 
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -157,11 +156,10 @@ export function ItemRow({
 
       {/* Hover actions */}
       <div style={{ display: 'flex', gap: 4, alignItems: 'center', opacity: hover ? 1 : 0, transition: 'opacity .12s' }}>
-        {item.status === 'open' && !inProgress && (
+        {item.status === 'open' && (
           <button
-            onClick={() => onStartSession(item.id)}
-            disabled={sessionActive}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, color: 'var(--ink-2)', opacity: sessionActive ? 0.4 : 1 }}
+            onClick={() => useStore.getState().startItem(frontId, item.id)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, color: 'var(--ink-2)' }}
           >
             <Icon name="play" size={14} /> Start
           </button>
