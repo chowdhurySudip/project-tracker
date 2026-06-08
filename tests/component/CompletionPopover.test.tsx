@@ -25,6 +25,7 @@ describe('CompletionPopover', () => {
   it('renders a dialog with Remarks input and Mark done button', () => {
     render(<CompletionPopover frontId={frontId} itemId={itemId} onClose={vi.fn()} />)
     expect(screen.getByRole('dialog', { name: 'Complete item' })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Complete item' })).toHaveAttribute('aria-modal', 'true')
     expect(screen.getByPlaceholderText('Remarks (optional)')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Mark done' })).toBeInTheDocument()
   })
@@ -79,5 +80,12 @@ describe('CompletionPopover', () => {
     render(<CompletionPopover frontId={frontId} itemId={itemId} onClose={onClose} />)
     await userEvent.click(screen.getByRole('button', { name: 'Mark done' }))
     expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('whitespace-only remarks create no log entry', async () => {
+    render(<CompletionPopover frontId={frontId} itemId={itemId} onClose={vi.fn()} />)
+    await userEvent.type(screen.getByPlaceholderText('Remarks (optional)'), '   ')
+    await userEvent.click(screen.getByRole('button', { name: 'Mark done' }))
+    expect(useStore.getState().fronts[0].items[0].logs).toHaveLength(0)
   })
 })

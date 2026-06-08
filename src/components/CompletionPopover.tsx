@@ -36,6 +36,7 @@ export function CompletionPopover({ frontId, itemId, onClose }: CompletionPopove
     <div
       role="dialog"
       aria-label="Complete item"
+      aria-modal="true"
       style={{
         position: 'absolute',
         top: '100%',
@@ -56,6 +57,7 @@ export function CompletionPopover({ frontId, itemId, onClose }: CompletionPopove
         onChange={(e) => setRemarks(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') confirm()
+          // Escape is handled by the document listener in useEffect to avoid double-fire
         }}
         placeholder="Remarks (optional)"
         style={{
