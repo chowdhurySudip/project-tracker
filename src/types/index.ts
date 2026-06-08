@@ -55,11 +55,3 @@ export interface Capture {
   frontId?: string      // set when filed to a front
   createdAt: string
 }
-
-export interface Session {
-  frontId: string
-  itemId: string
-  startedAt: string
-  elapsed: number       // seconds
-  paused: boolean
-}

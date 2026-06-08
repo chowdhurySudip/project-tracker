@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Sidebar } from '@/components/Sidebar'
-import { SessionBar } from '@/components/SessionBar'
 import { CaptureModal } from '@/components/CaptureModal'
 import { HomeView } from '@/views/HomeView'
 import { DetailView } from '@/views/DetailView'
@@ -14,7 +13,6 @@ function AppLayout() {
     <div className="app-layout">
       <Sidebar />
       <main className="app-main scroll">
-        <SessionBar />
         <Routes>
           <Route path="/" element={<HomeView />} />
           <Route path="/front/:id" element={<DetailView />} />

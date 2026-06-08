@@ -1,4 +1,4 @@
-import type { Front, Capture, Session, Item } from '@/types'
+import type { Front, Capture, Item } from '@/types'
 
 export type FrontsSlice = {
   fronts: Front[]
@@ -22,14 +22,4 @@ export type CapturesSlice = {
   deleteCapture: (captureId: string) => void
 }
 
-export type SessionSlice = {
-  session: Session | null
-  startSession: (frontId: string, itemId: string) => void
-  pauseSession: () => void
-  resumeSession: () => void
-  tickSession: (seconds: number) => void
-  endSession: (log?: string) => void
-  abandonSession: () => void
-}
-
-export type AppStore = FrontsSlice & ItemsSlice & CapturesSlice & SessionSlice
+export type AppStore = FrontsSlice & ItemsSlice & CapturesSlice

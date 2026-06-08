@@ -55,17 +55,6 @@ describe('DetailView', () => {
     expect(useStore.getState().fronts[0].name).toBe('Renamed')
   })
 
-  it('Start button creates a session with correct front and item ids', async () => {
-    const frontId = setup()
-    useStore.getState().addItem(frontId, { text: 'Task' })
-    const itemId = useStore.getState().fronts[0].items[0].id
-    renderAtPath(<DetailView />, '/front/:id', `/front/${frontId}`)
-    await userEvent.click(screen.getByText('Start'))
-    const session = useStore.getState().session
-    expect(session?.frontId).toBe(frontId)
-    expect(session?.itemId).toBe(itemId)
-  })
-
   it('Add item button adds a new item to the store on Enter', async () => {
     const frontId = setup()
     renderAtPath(<DetailView />, '/front/:id', `/front/${frontId}`)

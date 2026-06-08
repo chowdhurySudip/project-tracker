@@ -1,17 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useCapture } from '@/hooks/useCapture'
-import { useSession } from '@/hooks/useSession'
-import { useStore } from '@/store'
-
-const FRONT_DATA = {
-  name: 'F',
-  type: 'project' as const,
-  color: '256',
-  status: 'active' as const,
-  cadence: { days: [] as number[] },
-  prerequisites: [] as string[],
-}
 
 describe('useCapture', () => {
   it('starts with open=false', () => {
@@ -74,46 +63,3 @@ describe('useCapture', () => {
   })
 })
 
-describe('useSession (timer tick)', () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-    useStore.setState({ fronts: [], captures: [], session: null })
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
-    useStore.setState({ fronts: [], captures: [], session: null })
-  })
-
-  function startSession() {
-    useStore.getState().addFront(FRONT_DATA)
-    const frontId = useStore.getState().fronts[0].id
-    useStore.getState().addItem(frontId, { text: 'T' })
-    const itemId = useStore.getState().fronts[0].items[0].id
-    useStore.getState().startSession(frontId, itemId)
-  }
-
-  it('calls tickSession every second when session is active and not paused', () => {
-    startSession()
-    renderHook(() => useSession())
-    act(() => vi.advanceTimersByTime(3000))
-    expect(useStore.getState().session!.elapsed).toBe(3)
-  })
-
-  it('does not tick when session is paused', () => {
-    startSession()
-    useStore.getState().pauseSession()
-    renderHook(() => useSession())
-    act(() => vi.advanceTimersByTime(3000))
-    expect(useStore.getState().session!.elapsed).toBe(0)
-  })
-
-  it('stops ticking after session is abandoned', () => {
-    startSession()
-    const { result } = renderHook(() => useSession())
-    act(() => vi.advanceTimersByTime(1000))
-    act(() => result.current.abandon())
-    act(() => vi.advanceTimersByTime(2000))
-    expect(useStore.getState().session).toBeNull()
-  })
-})

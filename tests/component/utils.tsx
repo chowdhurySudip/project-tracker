@@ -31,5 +31,5 @@ export function renderAtPath(
 }
 
 export function resetStore() {
-  useStore.setState({ fronts: [], captures: [], session: null })
+  useStore.setState({ fronts: [], captures: [] })
 }
