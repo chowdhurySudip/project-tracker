@@ -3,7 +3,7 @@ import type { Item } from '@/types'
 import { useStore } from '@/store'
 import { Icon } from './ui/Icon'
 import { hsl, tint } from '@/lib/ui'
-import { CompletionPopover } from './CompletionPopover'
+import { CompletionModal } from './CompletionModal'
 
 interface ItemRowProps {
   item: Item
@@ -25,7 +25,7 @@ export function ItemRow({
   const [hover, setHover] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editText, setEditText] = useState(item.text)
-  const [popoverOpen, setPopoverOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
 
   const inProgress = item.status === 'in_progress'
   const energyHue: Record<string, number> = { deep: 256, medium: 220, light: 152 }
@@ -78,25 +78,22 @@ export function ItemRow({
         </button>
       </div>
 
-      {/* Toggle checkbox */}
-      <div style={{ position: 'relative', flex: 'none' }}>
-        <button
-          onClick={() => setPopoverOpen(true)}
-          style={{ width: 20, height: 20, borderRadius: 6, flex: 'none', border: `1.8px solid ${hover ? hsl(frontHue, 56) : 'var(--line)'}`, background: 'var(--surface)', display: 'grid', placeItems: 'center', transition: 'all .12s' }}
-          aria-label="Complete item"
-        >
-          {(hover || item.status !== 'open') && (
-            <Icon name="check" size={13} style={{ color: hsl(frontHue, 56) }} stroke={2.4} />
-          )}
-        </button>
-        {popoverOpen && (
-          <CompletionPopover
-            frontId={frontId}
-            itemId={item.id}
-            onClose={() => setPopoverOpen(false)}
-          />
+      {/* Status checkbox (visual only) */}
+      <div
+        style={{ width: 20, height: 20, borderRadius: 6, flex: 'none', border: `1.8px solid ${hover ? hsl(frontHue, 56) : 'var(--line)'}`, background: 'var(--surface)', display: 'grid', placeItems: 'center', transition: 'all .12s' }}
+      >
+        {(hover || item.status !== 'open') && (
+          <Icon name="check" size={13} style={{ color: hsl(frontHue, 56) }} stroke={2.4} />
         )}
       </div>
+      {modalOpen && (
+        <CompletionModal
+          frontId={frontId}
+          itemId={item.id}
+          itemText={item.text}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
 
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -162,6 +159,14 @@ export function ItemRow({
             style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, color: 'var(--ink-2)' }}
           >
             <Icon name="play" size={14} /> Start
+          </button>
+        )}
+        {item.status !== 'done' && (
+          <button
+            onClick={() => setModalOpen(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, color: `oklch(0.56 0.12 152)`, background: `oklch(0.95 0.04 152 / 0.7)` }}
+          >
+            <Icon name="check" size={13} stroke={2.4} /> Done
           </button>
         )}
       </div>

@@ -76,12 +76,12 @@ test('start item marks in_progress; complete with remark appears in done list', 
   await expect(page.getByText('In progress')).toBeVisible()
   await expect(page.getByRole('status')).not.toBeVisible()
 
-  // Checkbox opens CompletionPopover
-  await page.getByLabel('Complete item').click()
+  // Done button opens CompletionModal
+  await page.getByRole('button', { name: 'Done' }).click()
   await expect(page.getByRole('dialog', { name: 'Complete item' })).toBeVisible()
 
   // Type remark and confirm
-  await page.getByPlaceholder('Remarks (optional)').fill('Wrapped up nicely')
+  await page.getByPlaceholder('Add a closing remark (optional)').fill('Wrapped up nicely')
   await page.getByRole('button', { name: 'Mark done' }).click()
 
   // Item is now done with log text visible
@@ -101,7 +101,7 @@ test('completing item without remark creates no log entry', async ({ page }) => 
   await page.getByPlaceholder('New item…').fill('Quick task')
   await page.keyboard.press('Enter')
 
-  await page.getByLabel('Complete item').click()
+  await page.getByRole('button', { name: 'Done' }).click()
   await page.getByRole('button', { name: 'Mark done' }).click()
 
   await expect(page.getByText('Done · 1')).toBeVisible()
@@ -109,7 +109,7 @@ test('completing item without remark creates no log entry', async ({ page }) => 
   await expect(page.getByText('0 logs')).not.toBeVisible()
 })
 
-test('dismissing completion popover leaves item unchanged', async ({ page }) => {
+test('dismissing completion modal leaves item unchanged', async ({ page }) => {
   await page.goto('/')
 
   await page.getByRole('button', { name: 'New front' }).click()
@@ -121,7 +121,7 @@ test('dismissing completion popover leaves item unchanged', async ({ page }) => 
   await page.getByPlaceholder('New item…').fill('Undecided task')
   await page.keyboard.press('Enter')
 
-  await page.getByLabel('Complete item').click()
+  await page.getByRole('button', { name: 'Done' }).click()
   await expect(page.getByRole('dialog', { name: 'Complete item' })).toBeVisible()
   await page.getByRole('button', { name: 'Cancel' }).click()
 
@@ -144,8 +144,8 @@ test('completed item count shows on the review page', async ({ page }) => {
   await page.getByPlaceholder('New item…').fill('Finish this')
   await page.keyboard.press('Enter')
 
-  // Mark done via checkbox + popover (no session needed)
-  await page.getByLabel('Complete item').click()
+  // Mark done via Done button + modal (no session needed)
+  await page.getByRole('button', { name: 'Done' }).click()
   await page.getByRole('button', { name: 'Mark done' }).click()
 
   await page.getByRole('link', { name: 'Weekly review' }).click()

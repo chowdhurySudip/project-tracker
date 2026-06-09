@@ -1,15 +1,21 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useStore } from '@/store'
 
 interface CompletionPopoverProps {
   frontId: string
   itemId: string
+  anchorEl: HTMLElement | null
   onClose: () => void
 }
 
-export function CompletionPopover({ frontId, itemId, onClose }: CompletionPopoverProps) {
+export function CompletionPopover({ frontId, itemId, anchorEl, onClose }: CompletionPopoverProps) {
   const [remarks, setRemarks] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const rect = anchorEl?.getBoundingClientRect()
+  const top = rect ? rect.bottom + 6 : 0
+  const left = rect ? rect.left : 0
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -32,17 +38,16 @@ export function CompletionPopover({ frontId, itemId, onClose }: CompletionPopove
     onClose()
   }
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-label="Complete item"
       aria-modal="true"
       style={{
-        position: 'absolute',
-        top: '100%',
-        left: 0,
-        zIndex: 50,
-        marginTop: 6,
+        position: 'fixed',
+        top,
+        left,
+        zIndex: 9999,
         background: 'var(--surface)',
         border: '1px solid var(--line)',
         borderRadius: 12,
@@ -86,6 +91,7 @@ export function CompletionPopover({ frontId, itemId, onClose }: CompletionPopove
           Mark done
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
