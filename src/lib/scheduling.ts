@@ -76,8 +76,8 @@ export function getGlobalFocusItem(fronts: Front[], now: Date): FocusResult | nu
   const tierOf = (priority?: string): number =>
     priority === 'high' ? 0 : priority === 'low' ? 2 : 1
 
-  const timeActiveOf = (front: Front): number => {
-    const t = front.cadence.time
+  const timeActiveOf = (f: Front): number => {
+    const t = f.cadence.time
     if (!t || t.from == null || t.until == null) return 1
     return hour >= t.from && hour < t.until ? 0 : 1
   }

@@ -200,4 +200,13 @@ describe('getGlobalFocusItem', () => {
     const locked = makeFront({ id: 'locked', prerequisites: ['prereq'], items: [makeItem()] })
     expect(getGlobalFocusItem([prereq, locked], MONDAY)).toBeNull()
   })
+
+  it('when multiple fronts have in_progress items, returns the one from the first front by id', () => {
+    const itemA = makeItem({ id: 'a-item', status: 'in_progress' })
+    const itemB = makeItem({ id: 'b-item', status: 'in_progress' })
+    const frontA = makeFront({ id: 'aaa', items: [itemA] })
+    const frontB = makeFront({ id: 'bbb', items: [itemB] })
+    const result = getGlobalFocusItem([frontB, frontA], MONDAY) // intentionally unordered
+    expect(result!.item.id).toBe('a-item') // 'aaa' sorts before 'bbb'
+  })
 })
