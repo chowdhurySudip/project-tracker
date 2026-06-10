@@ -82,15 +82,15 @@ describe('ItemRow', () => {
     expect(reordered[1].id).toBe(firstItem.id)
   })
 
-  it('clicking item text shows edit input', async () => {
+  it('clicking item text opens the ItemEditModal', async () => {
     useStore.getState().addItem(frontId, { text: 'Original' })
     const item = useStore.getState().fronts[0].items[0]
     render(<ItemRow item={item} frontId={frontId} />)
     await userEvent.click(screen.getByText('Original'))
-    expect(screen.getByDisplayValue('Original')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Edit item' })).toBeInTheDocument()
   })
 
-  it('committing edit updates item text in the store', async () => {
+  it('saving in ItemEditModal updates item text in the store', async () => {
     useStore.getState().addItem(frontId, { text: 'Original' })
     const item = useStore.getState().fronts[0].items[0]
     render(<ItemRow item={item} frontId={frontId} />)

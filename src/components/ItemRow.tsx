@@ -4,6 +4,7 @@ import { useStore } from '@/store'
 import { Icon } from './ui/Icon'
 import { hsl, tint } from '@/lib/ui'
 import { CompletionModal } from './CompletionModal'
+import { ItemEditModal } from './ItemEditModal'
 
 interface ItemRowProps {
   item: Item
@@ -23,21 +24,12 @@ export function ItemRow({
   isNextMove = false,
 }: ItemRowProps) {
   const [hover, setHover] = useState(false)
-  const [editing, setEditing] = useState(false)
-  const [editText, setEditText] = useState(item.text)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [completionOpen, setCompletionOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   const inProgress = item.status === 'in_progress'
   const energyHue: Record<string, number> = { deep: 256, medium: 220, light: 152 }
   const eHue = energyHue[item.focusLevel ?? 'medium'] ?? 220
-
-  function commitEdit() {
-    const trimmed = editText.trim()
-    if (trimmed && trimmed !== item.text) {
-      useStore.getState().updateItem(frontId, item.id, { text: trimmed })
-    }
-    setEditing(false)
-  }
 
   return (
     <div
@@ -78,20 +70,31 @@ export function ItemRow({
         </button>
       </div>
 
-      {/* Status checkbox (visual only) */}
-      <div
-        style={{ width: 20, height: 20, borderRadius: 6, flex: 'none', border: `1.8px solid ${hover ? hsl(frontHue, 56) : 'var(--line)'}`, background: 'var(--surface)', display: 'grid', placeItems: 'center', transition: 'all .12s' }}
+      {/* Status checkbox */}
+      <button
+        aria-label="Complete item"
+        onClick={() => setCompletionOpen(true)}
+        style={{ width: 20, height: 20, borderRadius: 6, flex: 'none', border: `1.8px solid ${hover ? hsl(frontHue, 56) : 'var(--line)'}`, background: 'var(--surface)', display: 'grid', placeItems: 'center', transition: 'all .12s', cursor: 'pointer' }}
       >
         {(hover || item.status !== 'open') && (
           <Icon name="check" size={13} style={{ color: hsl(frontHue, 56) }} stroke={2.4} />
         )}
-      </div>
-      {modalOpen && (
+      </button>
+
+      {completionOpen && (
         <CompletionModal
           frontId={frontId}
           itemId={item.id}
           itemText={item.text}
-          onClose={() => setModalOpen(false)}
+          onClose={() => setCompletionOpen(false)}
+        />
+      )}
+
+      {editOpen && (
+        <ItemEditModal
+          item={item}
+          frontId={frontId}
+          onClose={() => setEditOpen(false)}
         />
       )}
 
@@ -111,21 +114,12 @@ export function ItemRow({
           {!inProgress && !isNextMove && item.status === 'open' && (
             <span style={{ color: 'var(--ink-3)', fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 600, marginRight: 8 }}>Open</span>
           )}
-          {editing ? (
-            <input
-              autoFocus
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') commitEdit()
-                if (e.key === 'Escape') { setEditText(item.text); setEditing(false) }
-              }}
-              onBlur={commitEdit}
-              style={{ border: 'none', outline: '1px solid var(--accent)', borderRadius: 4, padding: '1px 4px', fontSize: 14, fontWeight: 500, background: 'var(--surface-2)', width: '100%' }}
-            />
-          ) : (
-            <span onClick={() => { setEditText(item.text); setEditing(true) }} style={{ cursor: 'text' }}>{item.text}</span>
-          )}
+          <span
+            onClick={() => setEditOpen(true)}
+            style={{ cursor: 'text' }}
+          >
+            {item.text}
+          </span>
         </div>
         <div style={{ display: 'flex', gap: 7, marginTop: 6, flexWrap: 'wrap' }}>
           {item.timeEstimate && (
@@ -163,7 +157,7 @@ export function ItemRow({
         )}
         {item.status !== 'done' && (
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={() => setCompletionOpen(true)}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, color: `oklch(0.56 0.12 152)`, background: `oklch(0.95 0.04 152 / 0.7)` }}
           >
             <Icon name="check" size={13} stroke={2.4} /> Done
