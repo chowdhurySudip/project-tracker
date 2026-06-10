@@ -1,4 +1,4 @@
-import type { Front } from '@/types'
+import type { Front, Item } from '@/types'
 
 export interface ScheduleGroups {
   hero: Front | null
@@ -47,4 +47,48 @@ export function getScheduledFronts(fronts: Front[], now: Date): ScheduleGroups {
     offDay,
     locked,
   }
+}
+
+export interface FocusResult {
+  item: Item
+  front: Front
+}
+
+export function getGlobalFocusItem(fronts: Front[], now: Date): FocusResult | null {
+  const { scheduled } = getScheduledFronts(fronts, now)
+
+  for (const front of scheduled) {
+    const ip = front.items.find((i) => i.status === 'in_progress')
+    if (ip) return { item: ip, front }
+  }
+
+  const candidates: FocusResult[] = []
+  for (const front of scheduled) {
+    for (const item of front.items) {
+      if (item.status === 'open') candidates.push({ item, front })
+    }
+  }
+
+  if (candidates.length === 0) return null
+
+  const hour = now.getUTCHours()
+
+  const tierOf = (priority?: string): number =>
+    priority === 'high' ? 0 : priority === 'low' ? 2 : 1
+
+  const timeActiveOf = (front: Front): number => {
+    const t = front.cadence.time
+    if (!t || t.from == null || t.until == null) return 1
+    return hour >= t.from && hour < t.until ? 0 : 1
+  }
+
+  candidates.sort((a, b) => {
+    const tierDiff = tierOf(a.item.priority) - tierOf(b.item.priority)
+    if (tierDiff !== 0) return tierDiff
+    const timeDiff = timeActiveOf(a.front) - timeActiveOf(b.front)
+    if (timeDiff !== 0) return timeDiff
+    return a.item.createdAt.localeCompare(b.item.createdAt)
+  })
+
+  return candidates[0]
 }

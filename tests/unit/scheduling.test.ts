@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { getScheduledFronts } from '@/lib/scheduling'
-import type { Front } from '@/types'
+import { getScheduledFronts, getGlobalFocusItem } from '@/lib/scheduling'
+import type { Front, Item } from '@/types'
 
 function makeFront(overrides: Partial<Front> = {}): Front {
   return {
@@ -12,6 +12,18 @@ function makeFront(overrides: Partial<Front> = {}): Front {
     items: [],
     cadence: { days: [] },
     prerequisites: [],
+    createdAt: '2026-06-01T10:00:00.000Z',
+    ...overrides,
+  }
+}
+
+function makeItem(overrides: Partial<Item> = {}): Item {
+  return {
+    id: 'item1',
+    text: 'Do thing',
+    status: 'open',
+    order: 1,
+    logs: [],
     createdAt: '2026-06-01T10:00:00.000Z',
     ...overrides,
   }
@@ -105,5 +117,87 @@ describe('getScheduledFronts', () => {
     const result = getScheduledFronts([f], MONDAY)
     expect(result.locked).toHaveLength(0)
     expect(result.scheduled).toContainEqual(f)
+  })
+})
+
+describe('getGlobalFocusItem', () => {
+  it('returns null when no scheduled fronts have open items', () => {
+    const f = makeFront({ id: 'f1', items: [] })
+    expect(getGlobalFocusItem([f], MONDAY)).toBeNull()
+  })
+
+  it('returns null when no fronts at all', () => {
+    expect(getGlobalFocusItem([], MONDAY)).toBeNull()
+  })
+
+  it('returns the single open item when only one exists', () => {
+    const item = makeItem({ id: 'i1' })
+    const f = makeFront({ id: 'f1', items: [item] })
+    const result = getGlobalFocusItem([f], MONDAY)
+    expect(result).not.toBeNull()
+    expect(result!.item.id).toBe('i1')
+    expect(result!.front.id).toBe('f1')
+  })
+
+  it('returns an in_progress item over any open item', () => {
+    const open = makeItem({ id: 'open', status: 'open', priority: 'high' })
+    const inProg = makeItem({ id: 'inprog', status: 'in_progress' })
+    const f = makeFront({ id: 'f1', items: [open, inProg] })
+    const result = getGlobalFocusItem([f], MONDAY)
+    expect(result!.item.id).toBe('inprog')
+  })
+
+  it('picks high priority over normal within the same front', () => {
+    const normal = makeItem({ id: 'n', priority: 'normal', createdAt: '2026-01-01T00:00:00.000Z' })
+    const high = makeItem({ id: 'h', priority: 'high', createdAt: '2026-06-01T00:00:00.000Z' })
+    const f = makeFront({ id: 'f1', items: [normal, high] })
+    const result = getGlobalFocusItem([f], MONDAY)
+    expect(result!.item.id).toBe('h')
+  })
+
+  it('picks normal priority over low', () => {
+    const low = makeItem({ id: 'l', priority: 'low', createdAt: '2026-01-01T00:00:00.000Z' })
+    const normal = makeItem({ id: 'n', createdAt: '2026-06-01T00:00:00.000Z' })
+    const f = makeFront({ id: 'f1', items: [low, normal] })
+    const result = getGlobalFocusItem([f], MONDAY)
+    expect(result!.item.id).toBe('n')
+  })
+
+  it('treats absent priority as normal', () => {
+    const low = makeItem({ id: 'l', priority: 'low', createdAt: '2026-01-01T00:00:00.000Z' })
+    const implicit = makeItem({ id: 'i', createdAt: '2026-06-01T00:00:00.000Z' })
+    const f = makeFront({ id: 'f1', items: [low, implicit] })
+    const result = getGlobalFocusItem([f], MONDAY)
+    expect(result!.item.id).toBe('i')
+  })
+
+  it('prefers time-active front items within same priority tier', () => {
+    const itemA = makeItem({ id: 'a', priority: 'normal', createdAt: '2026-01-01T00:00:00.000Z' })
+    const itemB = makeItem({ id: 'b', priority: 'normal', createdAt: '2026-06-01T00:00:00.000Z' })
+    const allDay = makeFront({ id: 'all', items: [itemA] })
+    const morning = makeFront({ id: 'morning', items: [itemB], cadence: { days: [], time: { from: 9, until: 13 } } })
+    // MONDAY = 2026-06-01T10:00:00.000Z → UTC hour 10, within morning window
+    const result = getGlobalFocusItem([allDay, morning], MONDAY)
+    expect(result!.item.id).toBe('b')
+  })
+
+  it('falls back to oldest createdAt when tier and timeActive are equal', () => {
+    const newer = makeItem({ id: 'new', createdAt: '2026-06-01T00:00:00.000Z' })
+    const older = makeItem({ id: 'old', createdAt: '2026-01-01T00:00:00.000Z' })
+    const f = makeFront({ id: 'f1', items: [newer, older] })
+    const result = getGlobalFocusItem([f], MONDAY)
+    expect(result!.item.id).toBe('old')
+  })
+
+  it('ignores fronts not scheduled today', () => {
+    const item = makeItem({ id: 'i1' })
+    const f = makeFront({ id: 'f1', cadence: { days: [1, 2, 3, 4, 5] }, items: [item] })
+    expect(getGlobalFocusItem([f], SUNDAY)).toBeNull()
+  })
+
+  it('ignores locked fronts', () => {
+    const prereq = makeFront({ id: 'prereq', status: 'active', items: [] })
+    const locked = makeFront({ id: 'locked', prerequisites: ['prereq'], items: [makeItem()] })
+    expect(getGlobalFocusItem([prereq, locked], MONDAY)).toBeNull()
   })
 })
