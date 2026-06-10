@@ -13,11 +13,27 @@ const FRONT_DATA = {
 describe('HomeView', () => {
   beforeEach(resetStore)
 
-  it('renders hero front when scheduling returns one', () => {
+  it('renders global focus item text in hero card when an open item exists', () => {
     useStore.getState().addFront(FRONT_DATA)
+    const frontId = useStore.getState().fronts[0].id
+    useStore.getState().addItem(frontId, { text: 'My focus task' })
     renderWithRouter(<HomeView />)
     expect(screen.getByText('Focus now')).toBeInTheDocument()
-    expect(screen.getByText('Alpha')).toBeInTheDocument()
+    expect(screen.getAllByText('My focus task').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows the front name as context in the hero card', () => {
+    useStore.getState().addFront(FRONT_DATA)
+    const frontId = useStore.getState().fronts[0].id
+    useStore.getState().addItem(frontId, { text: 'Task' })
+    renderWithRouter(<HomeView />)
+    expect(screen.getAllByText('Alpha').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows "All items complete!" when scheduled fronts have no open items', () => {
+    useStore.getState().addFront(FRONT_DATA)
+    renderWithRouter(<HomeView />)
+    expect(screen.getByText('All items complete!')).toBeInTheDocument()
   })
 
   it('shows empty state when no active fronts', () => {

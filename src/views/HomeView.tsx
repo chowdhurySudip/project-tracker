@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useScheduling } from '@/hooks/useScheduling'
+import { getGlobalFocusItem } from '@/lib/scheduling'
+import type { FocusResult } from '@/lib/scheduling'
 import { useStore } from '@/store'
 import { Icon } from '@/components/ui/Icon'
 import { Glyph } from '@/components/ui/Glyph'
@@ -50,33 +52,32 @@ function InProgressTag({ hue }: { hue: number }) {
   )
 }
 
-function HeroCard({ front }: { front: Front }) {
+function HeroCard({ focus }: { focus: FocusResult }) {
+  const { item: nextItem, front } = focus
   const navigate = useNavigate()
   const hue = getFrontHue(front.color)
   const progress = getProgress(front)
-  const nextItem = getNextItem(front)
-  const isInProgress = front.items.some((i) => i.status === 'in_progress')
+  const isInProgress = nextItem.status === 'in_progress'
 
   return (
     <div style={{ position: 'relative', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: `linear-gradient(135deg, ${tint(hue, 97, 2)}, ${tint(hue, 94, 4)})`, border: `1px solid ${tint(hue, 87, 5)}`, padding: '26px 28px', marginBottom: 22 }}>
       <div style={{ position: 'absolute', right: -40, top: -40, width: 200, height: 200, borderRadius: '50%', background: tint(hue, 92, 5), opacity: 0.5, filter: 'blur(8px)', pointerEvents: 'none' }} />
       <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 360px', minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 16, flexWrap: 'wrap' }}>
             <span className="eyebrow" style={{ color: hsl(hue, 44), display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <span className="dot" style={{ background: hsl(hue, 56) }} />
               Focus now
             </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 14, flexWrap: 'wrap' }}>
-            <Glyph front={front} size={34} />
-            <span style={{ fontWeight: 600, fontSize: 15 }}>{front.name}</span>
+            <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>from</span>
+            <Glyph front={front} size={16} />
+            <span style={{ fontSize: 13, color: hsl(hue, 44), fontWeight: 600 }}>{front.name}</span>
           </div>
           <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.18, maxWidth: 560 }}>
-            {nextItem?.text || 'All items complete!'}
+            {nextItem.text}
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 18, flexWrap: 'wrap' }}>
-            {nextItem && !isInProgress && (
+            {!isInProgress && (
               <button
                 onClick={() => useStore.getState().startItem(front.id, nextItem.id)}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 20px', borderRadius: 10, fontSize: 15, fontWeight: 600, background: 'var(--accent)', color: '#fff', boxShadow: 'var(--shadow-1)' }}
@@ -261,9 +262,10 @@ function Stat({ label, value, hue }: { label: string; value: string; hue?: numbe
 }
 
 export function HomeView() {
-  const { hero, scheduled, offDay, locked } = useScheduling()
+  const { scheduled, offDay, locked } = useScheduling()
   const captures = useStore((state) => state.captures)
   const allFronts = useStore((state) => state.fronts)
+  const globalFocus = getGlobalFocusItem(allFronts, new Date())
   const [inboxOpen, setInboxOpen] = useState(true)
   const [filingId, setFilingId] = useState<string | null>(null)
 
@@ -279,7 +281,7 @@ export function HomeView() {
   const allItems = allFronts.flatMap((f) => f.items)
   const doneCount = allItems.filter((i) => i.status === 'done').length
 
-  const onDeck = scheduled.filter((f) => f.id !== hero?.id)
+  const onDeck = scheduled
 
   return (
     <div style={{ maxWidth: 'var(--maxw)', margin: '0 auto' }}>
@@ -298,7 +300,13 @@ export function HomeView() {
       </div>
 
       {/* Hero */}
-      {hero && <HeroCard front={hero} />}
+      {scheduled.length > 0 && (
+        globalFocus
+          ? <HeroCard focus={globalFocus} />
+          : <div style={{ padding: '26px 28px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--line-soft)', marginBottom: 22, color: 'var(--ink-3)', fontSize: 15 }}>
+              All items complete!
+            </div>
+      )}
 
       {/* On deck */}
       {(onDeck.length > 0 || locked.length > 0) && (
@@ -340,7 +348,7 @@ export function HomeView() {
       )}
 
       {/* Empty state */}
-      {!hero && scheduled.length === 0 && offDay.length === 0 && locked.length === 0 && parkedFronts.length === 0 && (
+      {scheduled.length === 0 && offDay.length === 0 && locked.length === 0 && parkedFronts.length === 0 && (
         <div style={{ textAlign: 'center', padding: '70px 20px', color: 'var(--ink-3)', border: '1px dashed var(--line)', borderRadius: 'var(--radius)' }}>
           <div style={{ fontWeight: 600, fontSize: 16, color: 'var(--ink)', marginBottom: 6 }}>Nothing scheduled for today.</div>
           <div style={{ fontSize: 13.5 }}>Add a front to get started — press <span className="kbd">N</span> or click "New front" in the sidebar.</div>
