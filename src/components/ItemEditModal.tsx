@@ -161,7 +161,7 @@ export function ItemEditModal({ item, frontId, onClose }: ItemEditModalProps) {
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
-            style={{ padding: '9px 18px', borderRadius: 8, fontSize: 14, fontWeight: 600, color: 'var(--ink-2)', cursor: 'pointer' }}
+            style={{ padding: '9px 18px', borderRadius: 8, fontSize: 14, fontWeight: 600, color: 'var(--ink-2)', cursor: 'pointer', border: '1px solid var(--line)' }}
           >
             Cancel
           </button>

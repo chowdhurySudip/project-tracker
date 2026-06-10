@@ -40,11 +40,12 @@ describe('ItemEditModal', () => {
     expect(screen.getByRole('button', { name: 'high' })).toBeInTheDocument()
   })
 
-  it('shows pre-existing priority pre-selected', () => {
+  it('pre-existing priority is pre-selected and persisted on immediate Save', async () => {
     useStore.getState().addItem(frontId, { text: 'Hi priority', priority: 'high' })
     const item = useStore.getState().fronts[0].items[0]
     render(<ItemEditModal item={item} frontId={frontId} onClose={vi.fn()} />)
-    expect(screen.getByRole('button', { name: 'high' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(useStore.getState().fronts[0].items[0].priority).toBe('high')
   })
 
   it('Save button calls updateItem with new text', async () => {
