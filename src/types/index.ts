@@ -16,6 +16,7 @@ export interface Item {
   status: ItemStatus
   order: number
   focusLevel?: FocusLevel
+  priority?: 'high' | 'normal' | 'low'
   timeEstimate?: number
   logs: Log[]
   createdAt: string

@@ -15,6 +15,7 @@ export const createItemsSlice: StateCreator<AppStore, [], [], ItemsSlice> = (set
           status: 'open',
           order: maxOrder + 1,
           focusLevel: data.focusLevel,
+          priority: data.priority,
           timeEstimate: data.timeEstimate,
           logs: [],
           createdAt: new Date().toISOString(),

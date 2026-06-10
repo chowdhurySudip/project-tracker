@@ -8,7 +8,7 @@ export type FrontsSlice = {
 }
 
 export type ItemsSlice = {
-  addItem: (frontId: string, data: Pick<Item, 'text' | 'focusLevel' | 'timeEstimate'>) => void
+  addItem: (frontId: string, data: Pick<Item, 'text' | 'focusLevel' | 'timeEstimate' | 'priority'>) => void
   updateItem: (frontId: string, itemId: string, updates: Partial<Omit<Item, 'id' | 'createdAt'>>) => void
   reorderItem: (frontId: string, itemId: string, direction: 'up' | 'down') => void
   addLog: (frontId: string, itemId: string, text: string) => void
